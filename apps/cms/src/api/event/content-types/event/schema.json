@@ -1,0 +1,28 @@
+{
+  "kind": "collectionType",
+  "collectionName": "events",
+  "info": {
+    "singularName": "event",
+    "pluralName": "events",
+    "displayName": "Event",
+    "description": "Bike Night dates and one-off notes"
+  },
+  "options": { "draftAndPublish": true },
+  "attributes": {
+    "title": { "type": "string", "required": true },
+    "slug": { "type": "uid", "targetField": "title", "required": true },
+    "dateStart": { "type": "datetime", "required": true },
+    "dateEnd": { "type": "datetime", "required": true },
+    "location": {
+      "type": "string",
+      "default": "John's Café, Hayling Island · PO11 0AS"
+    },
+    "note": { "type": "richtext" },
+    "photos": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::photo.photo",
+      "mappedBy": "event"
+    }
+  }
+}

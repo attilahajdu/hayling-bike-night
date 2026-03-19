@@ -1,0 +1,32 @@
+{
+  "name": "cms",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Hayling Bike Night — Strapi v4 CMS",
+  "scripts": {
+    "develop": "strapi develop",
+    "start": "strapi start",
+    "build": "strapi build",
+    "strapi": "strapi",
+    "dev": "strapi develop",
+    "lint": "echo \"(cms) lint skipped\"",
+    "test": "echo \"(cms) no tests\""
+  },
+  "dependencies": {
+    "@strapi/plugin-i18n": "4.25.12",
+    "@strapi/plugin-users-permissions": "4.25.12",
+    "@strapi/strapi": "4.25.12",
+    "pg": "8.13.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^5.3.4",
+    "styled-components": "^5.3.11"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=18.0.0 <=20.x.x",
+    "npm": ">=8.0.0"
+  }
+}

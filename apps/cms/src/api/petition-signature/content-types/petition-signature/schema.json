@@ -1,0 +1,23 @@
+{
+  "kind": "collectionType",
+  "collectionName": "petition_signatures",
+  "info": {
+    "singularName": "petition-signature",
+    "pluralName": "petition-signatures",
+    "displayName": "Petition signature"
+  },
+  "options": { "draftAndPublish": false },
+  "attributes": {
+    "name": { "type": "string", "required": true },
+    "email": { "type": "email", "required": true },
+    "postcode": { "type": "string" },
+    "consent": { "type": "boolean", "default": true, "required": true },
+    "signedAt": { "type": "datetime" },
+    "petition": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::petition.petition",
+      "inversedBy": "signatures"
+    }
+  }
+}

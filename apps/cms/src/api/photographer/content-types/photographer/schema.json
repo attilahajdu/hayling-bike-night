@@ -1,0 +1,24 @@
+{
+  "kind": "collectionType",
+  "collectionName": "photographers",
+  "info": {
+    "singularName": "photographer",
+    "pluralName": "photographers",
+    "displayName": "Photographer",
+    "description": "Partner sites — thumbnails link out for purchases"
+  },
+  "options": { "draftAndPublish": true },
+  "attributes": {
+    "name": { "type": "string", "required": true },
+    "websiteUrl": { "type": "string", "required": true },
+    "feedUrl": { "type": "string" },
+    "approvedDomains": { "type": "text" },
+    "bio": { "type": "text" },
+    "photos": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::photo.photo",
+      "mappedBy": "photographer"
+    }
+  }
+}

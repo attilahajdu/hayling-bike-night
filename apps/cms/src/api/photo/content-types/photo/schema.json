@@ -1,0 +1,59 @@
+{
+  "kind": "collectionType",
+  "collectionName": "photos",
+  "info": {
+    "singularName": "photo",
+    "pluralName": "photos",
+    "displayName": "Photo",
+    "description": "Community uploads or external photographer thumbnails"
+  },
+  "options": { "draftAndPublish": false },
+  "attributes": {
+    "title": { "type": "string" },
+    "caption": { "type": "text" },
+    "status": {
+      "type": "enumeration",
+      "enum": ["draft", "pending", "published", "rejected"],
+      "default": "pending",
+      "required": true
+    },
+    "isExternal": {
+      "type": "boolean",
+      "default": false
+    },
+    "thumbnailUrl": {
+      "type": "string",
+      "description": "Cached thumbnail when sourcing from photographer site"
+    },
+    "sourcePageUrl": {
+      "type": "string",
+      "description": "Gallery page on photographer site"
+    },
+    "purchaseUrl": {
+      "type": "string",
+      "description": "Direct buy / print link (opens off-site)"
+    },
+    "subjectKeywords": {
+      "type": "text",
+      "description": "Comma-separated hints to help riders find shots of their bike or kit"
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "event": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::event.event",
+      "inversedBy": "photos"
+    },
+    "photographer": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::photographer.photographer",
+      "inversedBy": "photos"
+    },
+    "submittedBy": { "type": "string" }
+  }
+}

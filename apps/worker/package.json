@@ -1,0 +1,11 @@
+{
+  "name": "worker",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Future: RSS / sitemap ingestion cron for photographer feeds",
+  "scripts": {
+    "dev": "node -e \"console.log('worker stub — implement ingestion here')\"",
+    "lint": "echo ok",
+    "test": "echo ok"
+  }
+}

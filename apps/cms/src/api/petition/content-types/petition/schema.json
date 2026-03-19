@@ -1,0 +1,23 @@
+{
+  "kind": "collectionType",
+  "collectionName": "petitions",
+  "info": {
+    "singularName": "petition",
+    "pluralName": "petitions",
+    "displayName": "Petition"
+  },
+  "options": { "draftAndPublish": true },
+  "attributes": {
+    "title": { "type": "string", "required": true },
+    "slug": { "type": "uid", "targetField": "title", "required": true },
+    "description": { "type": "richtext", "required": true },
+    "goalCount": { "type": "integer", "default": 500, "min": 1 },
+    "currentCount": { "type": "integer", "default": 0, "min": 0 },
+    "signatures": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::petition-signature.petition-signature",
+      "mappedBy": "petition"
+    }
+  }
+}
