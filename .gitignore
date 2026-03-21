@@ -25,6 +25,7 @@ apps/web/.local-run/
 apps/cms/.strapi-updater.json
 apps/cms/.strapi/
 
-# User uploads (served locally; don’t checkpoint binaries)
-apps/cms/public/uploads/
+# User uploads (ignore binaries; keep folder for Strapi on Render)
+apps/cms/public/uploads/**
+!apps/cms/public/uploads/.gitkeep
 apps/web/public/uploads/
