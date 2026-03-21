@@ -6,7 +6,7 @@
   "scripts": {
     "develop": "strapi develop",
     "start": "strapi start",
-    "build": "strapi build",
+    "build": "strapi build && node scripts/copy-content-type-schemas.js",
     "strapi": "strapi",
     "dev": "strapi develop",
     "lint": "echo \"(cms) lint skipped\"",

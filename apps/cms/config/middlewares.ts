@@ -5,7 +5,6 @@ export default [
   {
     name: "strapi::cors",
     config: {
-      enabled: true,
       /* Only allow configured origins in production to reduce cross-site abuse. */
       origin: (
         process.env.CORS_ORIGIN ??
