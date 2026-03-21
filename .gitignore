@@ -2,7 +2,7 @@ node_modules
 .next
 .turbo
 dist
-build
+/build
 .env
 .env.local
 .env*.local
