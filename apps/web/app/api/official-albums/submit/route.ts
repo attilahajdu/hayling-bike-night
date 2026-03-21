@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
+import { redirectSameOrigin } from "@/lib/request-site";
 
 const STRAPI = process.env.STRAPI_URL?.replace(/\/$/, "") ?? "http://localhost:1337";
 const TOKEN = process.env.STRAPI_API_TOKEN;
@@ -20,7 +21,7 @@ function slugify(value: string) {
 }
 
 function redirectTo(req: Request, path: string) {
-  return NextResponse.redirect(new URL(path, req.url), { status: 303 });
+  return redirectSameOrigin(req, path);
 }
 
 async function saveImage(file: File) {

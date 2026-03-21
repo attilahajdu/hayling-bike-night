@@ -201,7 +201,7 @@ export function GalleryGrid({ items }: { items: Item[] }) {
         })}
       </ul>
 
-      {active && activeSrc && activeIndex !== null && activeIndex >= 0 ? (
+      {active && activeIndex !== null && activeIndex >= 0 ? (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
           role="dialog"
@@ -216,7 +216,15 @@ export function GalleryGrid({ items }: { items: Item[] }) {
             Prev
           </button>
           <div className="w-full max-w-6xl">
-            <img src={activeSrc} alt={activeAttrs?.caption ?? activeAttrs?.title ?? "Gallery photo"} className="max-h-[78vh] w-full rounded-md object-contain" referrerPolicy="no-referrer" />
+            {activeSrc ? (
+              <img src={activeSrc} alt={activeAttrs?.caption ?? activeAttrs?.title ?? "Gallery photo"} className="max-h-[78vh] w-full rounded-md object-contain" referrerPolicy="no-referrer" />
+            ) : (
+              <div className="flex min-h-[40vh] items-center justify-center rounded-md bg-zinc-900/80 px-6 py-12 text-center text-sm text-zinc-300">
+                <p>
+                  No image URL on this record (or file not on this server). Metadata and tags still show below — full fix is storing images on Strapi/Supabase for production.
+                </p>
+              </div>
+            )}
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-zinc-100">
               <p>@{activeUploader}</p>
               <p>
