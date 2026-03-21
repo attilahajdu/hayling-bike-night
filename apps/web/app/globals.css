@@ -2,18 +2,106 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Light theme (optional — user can switch from default dark) */
 :root {
+  color-scheme: light;
+  --color-surface: 237 238 241;
+  --color-elevated: 228 230 234;
+  --color-ink: 28 28 28;
+  --color-accent: 27 79 114;
+  --color-accent-hover: 42 100 144;
+  --color-warm: 201 110 61;
+  --color-stone: 183 176 164;
+  --color-card: 255 255 255;
+  --color-card-border: 228 228 231;
+  --color-on-accent: 255 255 255;
+}
+
+/* Dark: body ink stays soft; accent CTAs use a clearer blue + white type for contrast */
+.dark {
   color-scheme: dark;
+  --color-surface: 33 35 42;
+  --color-elevated: 40 42 50;
+  /* Slightly above zinc-400 for readable body on charcoal cards without going harsh */
+  --color-ink: 198 200 212;
+  /* Stronger fill vs charcoal — was ~#608ab2 (washed out on dark UI) */
+  --color-accent: 56 152 236;
+  --color-accent-hover: 96 178 255;
+  --color-warm: 214 156 120;
+  --color-stone: 120 118 130;
+  --color-card: 38 40 48;
+  --color-card-border: 58 60 70;
+  --color-on-accent: 255 255 255;
 }
 
 body {
-  @apply bg-surface text-zinc-100 font-mono antialiased;
+  @apply bg-surface text-ink;
 }
 
 a {
-  @apply text-accent underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent;
+  @apply text-accent underline-offset-4 hover:text-accentHover hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent;
 }
 
 .skip-link {
-  @apply sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-accent focus:px-4 focus:py-2 focus:text-black;
+  @apply sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-accent focus:px-4 focus:py-2 focus:text-white;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@layer components {
+  .shell {
+    @apply mx-auto max-w-6xl px-4;
+  }
+  .card {
+    @apply rounded-lg border shadow-sm dark:shadow-none dark:ring-1 dark:ring-white/[0.06];
+    border-color: rgb(var(--color-card-border) / 0.95);
+    background-color: rgb(var(--color-card) / 1);
+  }
+  .dark .card {
+    border-color: rgb(var(--color-card-border) / 0.65);
+  }
+  .btn-primary {
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-md bg-accent px-6 py-3 font-display text-[0.9375rem] font-bold uppercase tracking-[0.05em] text-white no-underline transition hover:bg-accentHover sm:text-base sm:tracking-[0.06em] dark:font-semibold dark:text-[rgb(var(--color-on-accent))] dark:shadow-[0_1px_0_rgb(0_0_0/0.2)] dark:ring-1 dark:ring-white/15 dark:hover:bg-accentHover;
+  }
+  .btn-secondary {
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-md border border-white/80 bg-white/10 px-6 py-3 font-display text-[0.9375rem] font-bold uppercase tracking-[0.05em] text-white no-underline backdrop-blur-sm transition hover:bg-white/20 sm:text-base sm:tracking-[0.06em] dark:border-white/35 dark:bg-white/[0.1] dark:text-zinc-50 dark:hover:border-white/45 dark:hover:bg-white/[0.14];
+  }
+  .section-title {
+    @apply font-display text-[1.95rem] font-bold uppercase leading-none tracking-tight text-ink sm:text-[2.1rem];
+  }
+  .tag-warm {
+    @apply inline-block rounded-md bg-warm/15 px-3 py-1 text-xs uppercase text-warm;
+  }
+  .marquee-track {
+    animation: marquee 26s linear infinite;
+  }
+}
+
+a.btn-primary,
+a.btn-primary:hover,
+a.btn-primary:focus-visible,
+a.btn-secondary,
+a.btn-secondary:hover,
+a.btn-secondary:focus-visible {
+  color: #fff;
+  text-decoration: none;
+}
+
+.dark a.btn-primary,
+.dark a.btn-primary:hover,
+.dark a.btn-primary:focus-visible {
+  color: rgb(var(--color-on-accent)); /* matches --color-on-accent (white in dark) */
+}
+
+.dark a.btn-secondary,
+.dark a.btn-secondary:hover,
+.dark a.btn-secondary:focus-visible {
+  color: rgb(228 228 231);
 }

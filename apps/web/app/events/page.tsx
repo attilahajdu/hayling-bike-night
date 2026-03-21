@@ -8,29 +8,42 @@ export default async function EventsPage() {
   const list = res?.data ?? [];
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12">
-      <h1 className="font-display text-4xl uppercase text-white">Events</h1>
-      <p className="mt-2 max-w-2xl text-zinc-400">
-        Subscribe in your calendar: <a href="/api/calendar.ics">calendar feed (.ics)</a> or{" "}
-        <a href="/api/events">JSON</a> for apps.
-      </p>
-      <ul className="mt-8 space-y-4">
+    <div className="shell py-12">
+      <div className="mb-6 flex items-end justify-between">
+        <h1 className="section-title">Events</h1>
+        <a href="/api/calendar.ics" className="text-sm text-ink">Calendar feed (.ics)</a>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {list.length === 0 ? (
-          <li className="text-zinc-500">No events loaded — is Strapi running?</li>
+          <p className="text-zinc-500 dark:text-zinc-400">No events loaded — is Strapi running?</p>
         ) : (
-          list.map((e) => (
-            <li key={e.id} className="rounded border border-zinc-800 bg-elevated p-4">
-              <Link href={`/events/${e.attributes.slug}`} className="font-display text-2xl text-white no-underline hover:text-accent">
-                {e.attributes.title}
-              </Link>
-              <p className="mt-1 text-sm text-zinc-400">{e.attributes.location}</p>
-              <time className="mt-2 block text-xs text-zinc-500" dateTime={e.attributes.dateStart}>
-                {new Date(e.attributes.dateStart).toLocaleString("en-GB")}
-              </time>
-            </li>
-          ))
+          list.map((e, idx) => {
+            const d = new Date(e.attributes.dateStart);
+            return (
+              <article
+                key={e.id}
+                className={`rounded-2xl border-l-4 p-5 ${
+                  idx === 0
+                    ? "border-l-white bg-accent text-[rgb(var(--color-on-accent))]"
+                    : "border-l-accent bg-white dark:bg-[rgb(var(--color-card))]"
+                }`}
+              >
+                <p className="font-display font-bold text-6xl leading-none">{d.getDate()}</p>
+                <p
+                  className={`text-sm uppercase ${idx === 0 ? "text-[rgb(var(--color-on-accent))]/90" : "text-zinc-600 dark:text-zinc-400"}`}
+                >
+                  {d.toLocaleDateString("en-GB", { month: "long", weekday: "long" })}
+                </p>
+                <p className={`mt-2 text-sm ${idx === 0 ? "text-[rgb(var(--color-on-accent))]/90" : "text-zinc-600 dark:text-zinc-400"}`}>
+                  {e.attributes.location}
+                </p>
+                <Link href={`/events/${e.attributes.slug}`} className={`mt-4 inline-block text-sm ${idx === 0 ? "text-[rgb(var(--color-on-accent))]" : "text-accent"}`}>Open details →</Link>
+              </article>
+            );
+          })
         )}
-      </ul>
+      </div>
     </div>
   );
 }

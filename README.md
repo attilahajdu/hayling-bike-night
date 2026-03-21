@@ -54,7 +54,16 @@ Open `http://localhost:1337/admin`, create the admin user, then:
 - `Photographer`: `find`, `findOne`
 - `Photo`: **leave disabled** if the frontend uses `STRAPI_API_TOKEN` for all reads (recommended). If you enable `Photo` `find`, anyone can call the Strapi API directly.
 
-**Settings → API Tokens** — create a **Full access** token (or custom with create/update on `petition-signature`, `petition`, `photo`). Put it in `apps/web/.env` as `STRAPI_API_TOKEN`.
+**Settings → API Tokens** — create a **Full access** token (simplest), or a **custom** token that can at least:
+
+- **Official album**: `create`, `find`, `update` (pro weekly submissions + moderation)
+- **Gallery entry**: `find` (link new albums to the current week)
+- **Photo**: `create`, `find`, `update` (community uploads + moderation)
+- **Petition** / **Petition signature**: as needed for petitions
+
+Put it in `apps/web/.env.local` (or `apps/web/.env`) as `STRAPI_API_TOKEN`.
+
+If album submissions “succeed” on the site but never appear in Strapi, the token almost certainly lacks **Official album → create** — check `apps/web/.local-run/submission-queue/` for JSON files that include `strapiStatus` / `strapiBody`.
 
 Bootstrap on first start seeds **Thursday Bike Night events** (Apr–Sep, current year) and a **sample petition**.
 
@@ -82,6 +91,8 @@ See `apps/web/.env.example` and `apps/cms/.env.example`.
 | `STRAPI_API_TOKEN` | Web | **Server only** — never expose to the browser |
 | `AUTH_SECRET` | Web | Required for NextAuth |
 | `AUTH_*` OAuth | Web | Google / Facebook app keys |
+| `FACEBOOK_PAGE_ID` | Web | Numeric Facebook page id for feed source |
+| `FACEBOOK_PAGE_ACCESS_TOKEN` | Web | Server-only Graph API page token for post/media feed |
 | `OWNER_EMAILS` | Web | Who can access `/owner/moderation` |
 
 ## APIs
@@ -109,10 +120,35 @@ npm run lint
 npm run test
 ```
 
-Initialize git when you are ready:
+### One-command local startup
 
 ```bash
-git init && git add . && git commit -m "Initial Hayling Bike Night monorepo"
+/Users/ati/hayling-bike-night/scripts/start-local.sh
+```
+
+This starts:
+- Docker Postgres
+- Strapi (`apps/cms`) on `http://localhost:1337/admin`
+- Next.js (`apps/web`) on `http://localhost:3000`
+
+To stop:
+
+```bash
+/Users/ati/hayling-bike-night/scripts/stop-local.sh
+```
+
+### Push this repo to GitHub (checkpoint)
+
+If `git remote -v` is empty, create an empty repository on GitHub, then:
+
+```bash
+git remote add origin git@github.com:<YOUR_USER_OR_ORG>/hayling-bike-night.git
+# or: git remote add origin https://github.com/<YOUR_USER_OR_ORG>/hayling-bike-night.git
+
+git push -u origin master
+# If your GitHub default branch is main: git push -u origin master:main
+
+git push origin checkpoint-2026-03-20   # optional: push the annotated checkpoint tag
 ```
 
 ## Owner guide (non-technical)

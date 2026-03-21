@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "gallery_entries",
+  "info": {
+    "singularName": "gallery-entry",
+    "pluralName": "gallery-entries",
+    "displayName": "Gallery entry",
+    "description": "Per-meet gallery landing and publish metadata"
+  },
+  "options": { "draftAndPublish": true },
+  "attributes": {
+    "title": { "type": "string", "required": true },
+    "slug": { "type": "uid", "targetField": "title", "required": true },
+    "galleryLiveAt": { "type": "datetime" },
+    "tagline": { "type": "string" },
+    "tags": { "type": "string" },
+    "event": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::event.event",
+      "inversedBy": "galleryEntries"
+    },
+    "photos": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::photo.photo",
+      "mappedBy": "galleryEntry"
+    },
+    "officialAlbums": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::official-album.official-album",
+      "mappedBy": "galleryEntry"
+    }
+  }
+}

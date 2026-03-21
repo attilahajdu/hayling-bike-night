@@ -19,6 +19,12 @@
       "relation": "oneToMany",
       "target": "api::photo.photo",
       "mappedBy": "photographer"
+    },
+    "officialAlbums": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::official-album.official-album",
+      "mappedBy": "photographer"
     }
   }
 }

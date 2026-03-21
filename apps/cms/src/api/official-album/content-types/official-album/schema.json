@@ -1,0 +1,46 @@
+{
+  "kind": "collectionType",
+  "collectionName": "official_albums",
+  "info": {
+    "singularName": "official-album",
+    "pluralName": "official-albums",
+    "displayName": "Official album",
+    "description": "Photographer album submissions and approved links"
+  },
+  "options": { "draftAndPublish": true },
+  "attributes": {
+    "title": { "type": "string", "required": true },
+    "slug": { "type": "uid", "targetField": "title", "required": true },
+    "albumUrl": { "type": "string", "required": true },
+    "shopUrl": { "type": "string" },
+    "coverImageUrl": { "type": "string" },
+    "shortDescription": { "type": "string" },
+    "photoCount": { "type": "integer", "default": 0, "min": 0 },
+    "status": {
+      "type": "enumeration",
+      "enum": ["pending", "published", "rejected"],
+      "default": "pending",
+      "required": true
+    },
+    "submittedByName": { "type": "string" },
+    "submittedByEmail": { "type": "email" },
+    "galleryEntry": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::gallery-entry.gallery-entry",
+      "inversedBy": "officialAlbums"
+    },
+    "event": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::event.event",
+      "inversedBy": "officialAlbums"
+    },
+    "photographer": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::photographer.photographer",
+      "inversedBy": "officialAlbums"
+    }
+  }
+}

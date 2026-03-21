@@ -37,11 +37,15 @@
       "type": "text",
       "description": "Comma-separated hints to help riders find shots of their bike or kit"
     },
-    "image": {
-      "type": "media",
-      "multiple": false,
-      "allowedTypes": ["images"]
+    "imageUrl": {
+      "type": "string",
+      "description": "External/full image URL (optional). Use thumbnailUrl for fast gallery."
     },
+    "uploaderHandle": { "type": "string" },
+    "bikeMakeModel": { "type": "string" },
+    "bikeColour": { "type": "string" },
+    "consentConfirmed": { "type": "boolean", "default": false },
+    "moderationReason": { "type": "text" },
     "event": {
       "type": "relation",
       "relation": "manyToOne",
@@ -52,6 +56,12 @@
       "type": "relation",
       "relation": "manyToOne",
       "target": "api::photographer.photographer",
+      "inversedBy": "photos"
+    },
+    "galleryEntry": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::gallery-entry.gallery-entry",
       "inversedBy": "photos"
     },
     "submittedBy": { "type": "string" }

@@ -6,5 +6,11 @@ export function isOwnerEmail(email: string | null | undefined): boolean {
     .split(",")
     .map((s) => s.trim().toLowerCase())
     .filter(Boolean);
+  const devLoginEmail = (process.env.DEV_LOGIN_EMAIL ?? "").trim().toLowerCase();
+  if (devLoginEmail) allowed.push(devLoginEmail);
+  if (process.env.NODE_ENV === "development") {
+    // Keep local moderation unblocked when an old dev session is still active.
+    allowed.push("dev@hayling-bike-night.local");
+  }
   return allowed.includes(email.toLowerCase());
 }

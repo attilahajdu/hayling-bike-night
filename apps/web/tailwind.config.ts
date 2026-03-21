@@ -1,20 +1,22 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  content: [
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
+  darkMode: "class",
+  content: ["./app/**/*.{js,ts,jsx,tsx,mdx}", "./components/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {
       colors: {
-        surface: "#1C1C1C",
-        elevated: "#2E2E2E",
-        accent: "#FF6B00",
+        surface: "rgb(var(--color-surface) / <alpha-value>)",
+        elevated: "rgb(var(--color-elevated) / <alpha-value>)",
+        ink: "rgb(var(--color-ink) / <alpha-value>)",
+        accent: "rgb(var(--color-accent) / <alpha-value>)",
+        accentHover: "rgb(var(--color-accent-hover) / <alpha-value>)",
+        warm: "rgb(var(--color-warm) / <alpha-value>)",
+        stone: "rgb(var(--color-stone) / <alpha-value>)",
       },
       fontFamily: {
-        display: ["ui-sans-serif", "system-ui", "Segoe UI", "sans-serif"],
-        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+        display: ["var(--font-display)", "Arial Narrow", "sans-serif"],
+        body: ["var(--font-body)", "Inter", "system-ui", "sans-serif"],
       },
     },
   },

@@ -1,111 +1,556 @@
 import Link from "next/link";
+import { FacebookFeedSection } from "@/components/FacebookFeedSection";
 import { Hero } from "@/components/Hero";
-import { getEvents, getNewsList, getPhotos, mediaUrl } from "@/lib/strapi";
+import { getFacebookMedia } from "@/lib/facebook";
+import type { EventAttrs } from "@/lib/strapi";
+import {
+  getEvents,
+  getGalleryEntries,
+  getNewsList,
+  getOfficialAlbums,
+  getPetitions,
+  getPhotos,
+  getPublishedCommunityPhotoTotal,
+} from "@/lib/strapi";
+import { getBikeNightWeekIsoRange } from "@/lib/bike-night-week";
+import { getForecastForDate } from "@/lib/weather";
 
-export const revalidate = 60;
+/** Dynamic so community photo totals stay accurate after moderation (not stuck behind ISR). */
+export const dynamic = "force-dynamic";
+
+function statNumber(value: number) {
+  return new Intl.NumberFormat("en-GB").format(value);
+}
+
+type ShowcaseItem =
+  | { id: string; src: string; source: "facebook"; uploader: string }
+  | {
+      id: string;
+      src: string;
+      source: "community";
+      uploader: string;
+      subjectKeywords: string | null;
+      external: boolean;
+    };
+
+/** Stroke-only pills over imagery (matches gallery grid treatment, tuned for dark photos). */
+function ShowcaseSourceBadge({ item }: { item: ShowcaseItem }) {
+  const shell =
+    "rounded-full border border-white/45 px-2 py-0.5 text-[10px] leading-snug text-white/90 drop-shadow-[0_1px_2px_rgb(0_0_0/0.65)]";
+
+  if (item.source === "facebook") {
+    return (
+      <span className={`${shell} max-w-[min(7rem,calc(100%-1rem))] shrink-0 truncate text-center font-medium uppercase tracking-wide`}>
+        Facebook
+      </span>
+    );
+  }
+
+  if (item.external) {
+    return (
+      <span className={`${shell} max-w-[min(7rem,calc(100%-1rem))] shrink-0 truncate text-center font-medium uppercase tracking-wide`}>
+        Official
+      </span>
+    );
+  }
+
+  const keywordsRaw = (item.subjectKeywords ?? "").trim();
+  const tagsLabel = keywordsRaw.length ? keywordsRaw : "—";
+
+  return (
+    <span
+      className={`${shell} max-w-[min(13rem,calc(100%-1rem))] min-w-0`}
+      title={keywordsRaw.length ? keywordsRaw : undefined}
+    >
+      <span className="block truncate text-left">
+        <span className="font-medium">Tags:</span> <span className="font-normal normal-case">{tagsLabel}</span>
+      </span>
+    </span>
+  );
+}
 
 export default async function HomePage() {
-  const [events, news, photos] = await Promise.all([
+  const [events, news, petitions, galleryEntries, photos, facebookMedia] = await Promise.all([
     getEvents({ upcoming: true }),
     getNewsList(),
-    getPhotos({ pageSize: 8 }),
+    getPetitions(),
+    getGalleryEntries(),
+    getPhotos({ pageSize: 12 }),
+    getFacebookMedia(12),
   ]);
 
-  const nextEvents = events?.data?.slice(0, 4) ?? [];
   const latestNews = news?.data?.slice(0, 3) ?? [];
-  const gallery = photos?.data ?? [];
+  const latestPetition = petitions?.data?.[0];
+  const latestEntry = galleryEntries?.data?.[0] ?? null;
+  const latestPhotos = photos?.data ?? [];
+  const facebookShowcase: ShowcaseItem[] = facebookMedia.map((src, idx) => ({
+    id: `fb-${idx}`,
+    src,
+    source: "facebook",
+    uploader: "haylingbikenight",
+  }));
+  const communityShowcase = latestPhotos
+    .map((ph, idx) => {
+      const src = ph.attributes.thumbnailUrl ?? ph.attributes.imageUrl ?? null;
+      if (!src) return null;
+      const outbound = ph.attributes.purchaseUrl ?? ph.attributes.sourcePageUrl;
+      const external = Boolean(ph.attributes.isExternal || outbound);
+      return {
+        id: `community-${ph.id}-${idx}`,
+        src,
+        source: "community" as const,
+        uploader: ph.attributes.uploaderHandle ?? ph.attributes.submittedBy ?? "community",
+        subjectKeywords: ph.attributes.subjectKeywords ?? null,
+        external,
+      };
+    })
+    .filter((item): item is Extract<ShowcaseItem, { source: "community" }> => item !== null);
+  const mergedShowcase: ShowcaseItem[] = [...facebookShowcase, ...communityShowcase];
+  const apiEvents = (events?.data ?? []).slice(0, 8);
+  const escortDate = new Date();
+  escortDate.setDate(escortDate.getDate() + 12);
+  escortDate.setHours(18, 0, 0, 0);
+  const sadekDate = new Date();
+  sadekDate.setDate(sadekDate.getDate() + 26);
+  sadekDate.setHours(10, 0, 0, 0);
+
+  type HomeEventRow =
+    | { kind: "strapi"; id: number; attrs: EventAttrs }
+    | { kind: "static"; id: string; attrs: { title: string; dateStart: string; note: string } };
+
+  const homeEventRows: HomeEventRow[] = [];
+  apiEvents.forEach((e, i) => {
+    homeEventRows.push({ kind: "strapi", id: e.id, attrs: e.attributes });
+    if (i === 0) {
+      homeEventRows.push({
+        kind: "static",
+        id: "home-bike-escort",
+        attrs: {
+          title: "Bike escort",
+          dateStart: escortDate.toISOString(),
+          note: "Rolling out together — check socials for meet time & route.",
+        },
+      });
+    }
+    if (i === 1) {
+      homeEventRows.push({
+        kind: "static",
+        id: "home-sadek-ride",
+        attrs: {
+          title: "Sadek ride out",
+          dateStart: sadekDate.toISOString(),
+          note: "Community-led ride — pace social, all bikes welcome.",
+        },
+      });
+    }
+  });
+
+  if (homeEventRows.length === 0) {
+    const fallbackMeet = new Date();
+    fallbackMeet.setDate(fallbackMeet.getDate() + ((4 + 7 - fallbackMeet.getDay()) % 7 || 7));
+    fallbackMeet.setHours(17, 0, 0, 0);
+    homeEventRows.push(
+      {
+        kind: "static",
+        id: "home-fallback-bike-night",
+        attrs: {
+          title: "Hayling Bike Night",
+          dateStart: fallbackMeet.toISOString(),
+          note: "Weekly meet — John’s Cafe, PO11 0AS. Season dates appear here when published.",
+        },
+      },
+      {
+        kind: "static",
+        id: "home-bike-escort",
+        attrs: {
+          title: "Bike escort",
+          dateStart: escortDate.toISOString(),
+          note: "Rolling out together — check socials for meet time & route.",
+        },
+      },
+      {
+        kind: "static",
+        id: "home-sadek-ride",
+        attrs: {
+          title: "Sadek ride out",
+          dateStart: sadekDate.toISOString(),
+          note: "Community-led ride — pace social, all bikes welcome.",
+        },
+      },
+    );
+  }
+
+  const nextStrapiEvent = apiEvents[0];
+  const nextUpcomingForecast = nextStrapiEvent ? await getForecastForDate(nextStrapiEvent.attributes.dateStart) : null;
+  const bikeNightWeek = getBikeNightWeekIsoRange();
+  const [officialRes, communityRes, recentOfficialRes, publishedCommunityTotal, publishedCommunityThisWeek] =
+    await Promise.all([
+      latestEntry ? getOfficialAlbums({ galleryEntrySlug: latestEntry.attributes.slug, status: "published" }) : Promise.resolve(null),
+      getPhotos({
+        pageSize: 24,
+        updatedAtGte: bikeNightWeek.gte,
+        updatedAtLt: bikeNightWeek.lt,
+      }),
+      getOfficialAlbums({ status: "published" }),
+      getPublishedCommunityPhotoTotal(),
+      getPublishedCommunityPhotoTotal({
+        updatedAtGte: bikeNightWeek.gte,
+        updatedAtLt: bikeNightWeek.lt,
+      }),
+    ]);
+  const officialForWeek = officialRes?.data ?? [];
+  const recentOfficial = recentOfficialRes?.data ?? [];
+  const official = officialForWeek.length ? officialForWeek : recentOfficial;
+  const communityForWeek = (communityRes?.data ?? []).filter((p) => p.attributes.isExternal !== true);
+  const recentCommunityRes = await getPhotos({ pageSize: 24 });
+  const recentCommunity = (recentCommunityRes?.data ?? []).filter((p) => p.attributes.isExternal !== true);
+  const displayCommunity = communityForWeek.length ? communityForWeek : recentCommunity;
+  const showingRecentNotThisWeek = communityForWeek.length === 0 && displayCommunity.length > 0;
+  const starterPros = [
+    {
+      id: "home-pro-1",
+      title: "Michael Jones-Price Photography",
+      albumUrl:
+        "https://michaeljones-pricephotography.pixieset.com/rykassessionarrivalsonly09001300-3/?fbclid=IwY2xjawQqAUpleHRuA2FlbQIxMQBzcnRjBmFwcF9pZBAyMjIwMzkxNzg4MjAwODkyAAEewQToGTI8mwRx77U20oa4rj5_9_4bkUSJ0bYCx_yS_nGfK5PCVHMzYtiYKbo_aem_oUY4_SyE26bZ-sQJNAAv1A",
+      websiteUrl: "https://michaeljones-pricephotography.pixieset.com",
+      coverImageUrl: "/images/hayling-badge.png",
+      photographer: "Michael Jones-Price",
+      dateLabel: "21 August 2025",
+    },
+    {
+      id: "home-pro-2",
+      title: "The Right Bikes",
+      albumUrl:
+        "https://www.therightbikes.com/?fbclid=IwY2xjawQqAnJleHRuA2FlbQIxMABicmlkETFkdE5RaTJlT1k0R0xSbXlmc3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHk-cnNhYxOlCMYOD_FmP302hjwxZYql-wQ8p2QBRifRdl5Szs21vTAZUpC2n_aem_OLqIvp0tJyJ6ni1wkZ1diA",
+      websiteUrl: "https://www.therightbikes.com",
+      coverImageUrl: "/images/ridebikes.png",
+      photographer: "The Right Bikes",
+      dateLabel: "21 August 2025",
+    },
+    {
+      id: "home-pro-3",
+      title: "Bikes on the Beach Photography",
+      albumUrl: "https://gallery.bikesonthebeachphoto.co.uk/hayling-thursday-latest",
+      websiteUrl: "https://www.bikesonthebeachphoto.co.uk",
+      coverImageUrl: "/images/hayling-beach.jpg",
+      photographer: "Bikes on the Beach Photography",
+      dateLabel: "21 August 2025",
+    },
+    {
+      id: "home-pro-4",
+      title: "1808 Photography",
+      albumUrl: "https://galleries.1808photography.co.uk/hayling-bike-night-weekly",
+      websiteUrl: "https://www.1808photography.co.uk",
+      coverImageUrl: "/images/owner.jpg",
+      photographer: "1808 Photography",
+      dateLabel: "21 August 2025",
+    },
+  ];
+  const communityFallback = [
+    { id: "home-community-owner", src: "/images/owner.jpg", label: "Community upload · 21 August 2025" },
+    { id: "home-community-beach", src: "/images/hayling-beach.jpg", label: "Community upload · 21 August 2025" },
+  ];
 
   return (
     <>
       <Hero />
-      <div className="mx-auto max-w-6xl space-y-16 px-4 py-12">
-        <section aria-labelledby="upcoming">
-          <h2 id="upcoming" className="font-display text-3xl uppercase text-white">
-            Upcoming dates
-          </h2>
-          <ul className="mt-4 space-y-3">
-            {nextEvents.length === 0 ? (
-              <li className="text-zinc-500">Connect Strapi to load this season&apos;s Thursdays — or check back soon.</li>
-            ) : (
-              nextEvents.map((e) => (
-                <li key={e.id} className="flex flex-wrap items-baseline justify-between gap-2 border-b border-zinc-800 py-2">
-                  <Link href={`/events/${e.attributes.slug}`} className="font-display text-xl text-white no-underline hover:text-accent">
-                    {e.attributes.title}
-                  </Link>
-                  <time className="text-sm text-zinc-400" dateTime={e.attributes.dateStart}>
-                    {new Date(e.attributes.dateStart).toLocaleString("en-GB", {
-                      weekday: "short",
-                      day: "numeric",
-                      month: "short",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </time>
-                </li>
-              ))
-            )}
-          </ul>
-          <Link href="/events" className="mt-4 inline-block text-sm text-accent">
-            All events →
-          </Link>
-        </section>
 
-        <section aria-labelledby="news">
-          <h2 id="news" className="font-display text-3xl uppercase text-white">
-            Latest news
-          </h2>
-          <ul className="mt-4 grid gap-6 md:grid-cols-3">
-            {latestNews.length === 0 ? (
-              <li className="text-zinc-500 md:col-span-3">No posts yet.</li>
-            ) : (
-              latestNews.map((n) => (
-                <li key={n.id} className="rounded border border-zinc-800 bg-elevated p-4">
-                  <Link href={`/news/${n.attributes.slug}`} className="font-display text-xl text-white no-underline hover:text-accent">
-                    {n.attributes.title}
-                  </Link>
-                  {n.attributes.tags ? <p className="mt-2 text-xs uppercase text-accent">{n.attributes.tags}</p> : null}
-                </li>
-              ))
-            )}
-          </ul>
-        </section>
+      <section className="border-y border-zinc-800 bg-zinc-950 py-20">
+        <div className="shell grid grid-cols-2 gap-5 sm:grid-cols-4">
+          <div><p className="font-display font-bold text-5xl uppercase text-zinc-300">23</p><p className="text-sm text-zinc-500">This season meets</p></div>
+          <div><p className="font-display font-bold text-5xl uppercase text-zinc-300">500</p><p className="text-sm text-zinc-500">Expected riders weekly</p></div>
+          <div><p className="font-display font-bold text-5xl uppercase text-zinc-300">{statNumber(publishedCommunityTotal)}</p><p className="text-sm text-zinc-500">Community photos (published)</p></div>
+          <div><p className="font-display font-bold text-5xl uppercase text-zinc-300">Apr-Sep</p><p className="text-sm text-zinc-500">Every Thursday afternoon</p></div>
+        </div>
+      </section>
 
-        <section aria-labelledby="gallery">
-          <h2 id="gallery" className="font-display text-3xl uppercase text-white">
-            From the meet
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm text-zinc-400">
-            Community shots and photographer thumbnails. Opens full-size in the gallery; purchases stay on the photographer&apos;s own site.
-          </p>
-          <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {gallery.length === 0 ? (
-              <p className="col-span-full text-zinc-500">No published photos yet.</p>
-            ) : (
-              gallery.map((ph) => {
-                const img = ph.attributes.image?.data?.attributes;
-                const url = ph.attributes.thumbnailUrl ?? (img ? mediaUrl(img) : null);
-                return (
-                  <Link
-                    key={ph.id}
-                    href="/gallery"
-                    className="relative aspect-square overflow-hidden rounded border border-zinc-800 bg-black"
-                  >
-                    {url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={url} alt="" className="h-full w-full object-cover" loading="lazy" referrerPolicy="no-referrer" />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-xs text-zinc-600">Photo</div>
-                    )}
-                  </Link>
-                );
-              })
-            )}
+      <div className="space-y-0">
+        <section className="bg-white py-20 dark:bg-zinc-950">
+          <div className="shell">
+          <div>
+            <h3 className="font-display font-bold text-3xl uppercase text-ink">Pro Photographers&apos; Latest Galleries</h3>
+            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Official photographer albums.</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {(() => {
+                const officialCards = official.map((a) => ({
+                  id: `official-${a.id}`,
+                  title: a.attributes.title,
+                  albumUrl: a.attributes.albumUrl,
+                  websiteUrl: a.attributes.shopUrl ?? a.attributes.albumUrl,
+                  coverImageUrl: a.attributes.coverImageUrl ?? "/images/ridebikes.png",
+                  photographer: a.attributes.photographer?.data?.attributes.name ?? a.attributes.submittedByName ?? "Photographer",
+                  dateLabel: "21 August 2025",
+                }));
+                const cards = [...officialCards];
+                if (cards.length < 4) {
+                  cards.push(...starterPros.slice(0, 4 - cards.length));
+                }
+                return cards.slice(0, 4);
+              })().map((p) => (
+                <article key={p.id} className="card overflow-hidden">
+                  <div className="aspect-[4/3] bg-zinc-200">
+                    <img src={p.coverImageUrl} alt={p.title} className="h-full w-full object-cover" loading="lazy" />
+                  </div>
+                  <div className="p-3">
+                    <p className="font-display font-bold text-xl uppercase text-ink">{p.title}</p>
+                    <p className="text-xs uppercase tracking-wide text-zinc-500">{p.photographer}</p>
+                    <p className="text-xs uppercase tracking-wide text-warm">{p.dateLabel}</p>
+                    <div className="mt-2 flex gap-3 text-sm">
+                      <Link href={p.albumUrl} target="_blank" className="text-accent">Gallery →</Link>
+                      <Link href={p.websiteUrl} target="_blank" className="text-accent">Website →</Link>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
           </div>
-          <Link href="/gallery" className="mt-4 inline-block text-sm text-accent">
-            Open gallery →
-          </Link>
+          </div>
+        </section>
+
+        <section className="border-y border-stone/30 bg-surface py-20">
+          <div className="shell">
+            <div className="mb-2 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h3 className="font-display font-bold text-3xl uppercase text-ink">Community Submitted Photos</h3>
+                <p className="mt-1 text-sm text-zinc-600">
+                  This week = Thursday 00:00 → next Thursday (UK time). Latest uploads from riders — same wall, your angle.
+                </p>
+              </div>
+              <Link
+                href="/gallery#community-photos"
+                className="text-sm font-medium text-accent no-underline hover:underline"
+              >
+                View all in gallery →
+              </Link>
+            </div>
+            <div className="mt-6 grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+              {(displayCommunity.length
+                ? displayCommunity.slice(0, 12).map((ph, idx) => ({
+                    id: `week-community-${ph.id}-${idx}`,
+                    src: ph.attributes.thumbnailUrl ?? ph.attributes.imageUrl ?? "/images/hayling-beach.jpg",
+                    label: communityForWeek.length ? "This week (Thu–Thu)" : "Recent upload (outside this week)",
+                  }))
+                : communityFallback
+              ).map((item) => (
+                <article
+                  key={item.id}
+                  className="overflow-hidden rounded-xl border border-stone/50 bg-white shadow-sm ring-1 ring-black/[0.03] dark:border-zinc-700 dark:bg-[rgb(var(--color-card))] dark:ring-0"
+                >
+                  <div className="aspect-square bg-zinc-200">
+                    <img src={item.src} alt={item.label} className="h-full w-full object-cover" loading="lazy" />
+                  </div>
+                </article>
+              ))}
+            </div>
+            <div className="mt-8 flex flex-col gap-2">
+              <Link href="/gallery#community-photos" className="btn-primary w-fit">
+                This week: {statNumber(publishedCommunityThisWeek)} community photos →
+              </Link>
+              {showingRecentNotThisWeek ? (
+                <p className="text-sm text-zinc-500">
+                  Nothing published in the current Thursday week yet — showing recent photos instead. Count above is for this week only.
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </section>
+
+        <section className="relative overflow-hidden bg-gradient-to-br from-zinc-200 via-zinc-100 to-zinc-200 py-20 dark:from-zinc-900 dark:via-zinc-950 dark:to-zinc-900">
+          <div
+            className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-accent/[0.07] blur-3xl"
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-zinc-400/15 blur-3xl"
+            aria-hidden
+          />
+          <div className="shell relative">
+            <div className="card relative overflow-hidden p-6 shadow-md sm:p-10">
+              <div className="absolute left-0 top-0 h-full w-1.5 bg-accent" aria-hidden />
+              <div className="pl-2 sm:pl-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Thursday nights</p>
+                <h2 className="mt-2 section-title">Shot something good on Thursday?</h2>
+                <p className="mt-3 max-w-2xl text-base leading-relaxed text-zinc-700 dark:text-zinc-300">
+                  Add it to the community gallery so everyone can relive the meet. Quick upload, no account faff — just
+                  your best frame from the car park.
+                </p>
+                <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
+                  <Link href="/upload" className="btn-primary">
+                    Upload your shots →
+                  </Link>
+                  <Link
+                    href="/submit-album"
+                    className="inline-flex items-center justify-center rounded-md border border-zinc-300 bg-white px-6 py-3 font-display text-[0.85rem] font-bold uppercase tracking-wide text-ink no-underline shadow-sm transition hover:border-zinc-400 hover:bg-zinc-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent dark:border-zinc-600 dark:bg-zinc-800 dark:hover:bg-zinc-700"
+                  >
+                    Photographer? Submit a link to your gallery
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-white py-20 dark:bg-zinc-950">
+          <div className="shell">
+          <div className="mb-4 flex items-end justify-between gap-3">
+            <h2 className="section-title">Upcoming Events</h2>
+            <Link href="/events" className="text-sm text-ink">
+              View all →
+            </Link>
+          </div>
+          <div className="flex gap-4 overflow-x-auto pb-3 pt-1 [scrollbar-width:thin]">
+            {homeEventRows.map((row, idx) => {
+              const d = new Date(row.attrs.dateStart);
+              const title = row.attrs.title;
+              const isOfficial = /hayling bike night/i.test(row.attrs.title);
+              const isFeatured = idx === 0;
+              return (
+                <article
+                  key={row.kind === "strapi" ? row.id : row.id}
+                  className={`flex min-w-[220px] max-w-[240px] flex-col rounded-lg border p-5 shadow-sm ${
+                    isFeatured
+                      ? "border-accent/40 bg-accent text-[rgb(var(--color-on-accent))] shadow-md shadow-accent/15"
+                      : "border-zinc-200 bg-white text-ink dark:border-zinc-700 dark:bg-[rgb(var(--color-card))]"
+                  }`}
+                >
+                  <p
+                    className={`inline-flex w-fit rounded px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${
+                      isFeatured
+                        ? "bg-white/15 text-[rgb(var(--color-on-accent))]"
+                        : isOfficial
+                          ? "bg-accent/15 text-accent"
+                          : "bg-zinc-200 text-zinc-700"
+                    }`}
+                  >
+                    {isOfficial ? "Bike Night" : "Community event"}
+                  </p>
+                  <p className={`mt-4 font-display font-bold text-5xl leading-none ${isFeatured ? "text-[rgb(var(--color-on-accent))]" : "text-ink"}`}>
+                    {d.getDate()}
+                  </p>
+                  <p
+                    className={`text-sm uppercase ${isFeatured ? "text-[rgb(var(--color-on-accent))]/90" : "text-zinc-600 dark:text-zinc-400"}`}
+                  >
+                    {d.toLocaleDateString("en-GB", { month: "short", weekday: "short" })}
+                  </p>
+                  <p className={`mt-3 font-display font-bold text-lg uppercase leading-snug ${isFeatured ? "text-[rgb(var(--color-on-accent))]" : "text-ink"}`}>
+                    {title}
+                  </p>
+                  <p className={`mt-2 text-xs leading-relaxed ${isFeatured ? "text-[rgb(var(--color-on-accent))]/85" : "text-zinc-600 dark:text-zinc-400"}`}>
+                    {row.kind === "strapi"
+                      ? idx === 0
+                        ? row.attrs.location
+                          ? `Next meet — ${row.attrs.location}`
+                          : "Next meet — John’s Cafe, PO11 0AS"
+                        : row.attrs.location || "Hayling Island"
+                      : row.attrs.note}
+                  </p>
+                  {isFeatured && nextUpcomingForecast && row.kind === "strapi" ? (
+                    <p className="mt-2 text-xs text-[rgb(var(--color-on-accent))]/90">Forecast: {nextUpcomingForecast}</p>
+                  ) : null}
+                  <a
+                    href="/api/calendar.ics"
+                    className={`mt-4 inline-block text-xs font-medium no-underline hover:underline ${isFeatured ? "text-[rgb(var(--color-on-accent))]" : "text-accent"}`}
+                  >
+                    Add to calendar
+                  </a>
+                </article>
+              );
+            })}
+          </div>
+          </div>
+        </section>
+
+        <section className="bg-elevated py-20">
+          <div className="shell">
+          <div className="mb-4 flex items-end gap-4">
+            <h2 className="section-title">From The Community</h2>
+            <div className="h-px flex-1 bg-stone/60 dark:bg-zinc-700" />
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+            {latestNews[0] ? (
+              <article className="card overflow-hidden">
+                <div className="aspect-[16/7] bg-[url('https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=1400&q=70')] bg-cover bg-center" />
+                <div className="p-5">
+                  <p className="tag-warm">Featured</p>
+                  <h3 className="mt-3 font-display font-bold text-4xl uppercase">{latestNews[0].attributes.title}</h3>
+                  <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Latest update from organisers and the rider community.</p>
+                  <Link href={`/news/${latestNews[0].attributes.slug}`} className="mt-3 inline-block text-accent">Read more →</Link>
+                </div>
+              </article>
+            ) : null}
+            <div className="space-y-4">
+              {latestNews.slice(1).map((n) => (
+                <article key={n.id} className="card p-4">
+                  <h4 className="font-display font-bold text-3xl uppercase">{n.attributes.title}</h4>
+                  <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Community, safety, and local updates.</p>
+                  <Link href={`/news/${n.attributes.slug}`} className="mt-2 inline-block text-accent">Read more →</Link>
+                </article>
+              ))}
+              {latestPetition ? (
+                <Link href={`/petitions/${latestPetition.attributes.slug}`} className="block rounded-md bg-accent px-4 py-3 text-[rgb(var(--color-on-accent))] no-underline">
+                  <p className="font-display text-2xl font-bold uppercase">Active petition</p>
+                  <p className="text-sm">{latestPetition.attributes.title} — Sign and share →</p>
+                </Link>
+              ) : null}
+            </div>
+          </div>
+          </div>
+        </section>
+
+        <section className="relative overflow-hidden bg-zinc-950 py-24 text-zinc-300 dark:bg-black">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(255,255,255,0.08),transparent_55%)]" aria-hidden />
+          <div className="pointer-events-none absolute inset-0 opacity-[0.04] [background-image:linear-gradient(135deg,#fff_0.5px,transparent_0.5px),linear-gradient(45deg,#fff_0.5px,transparent_0.5px)] [background-size:24px_24px]" aria-hidden />
+          <div className="shell relative">
+          <div className="grid gap-5 md:grid-cols-4">
+            {mergedShowcase.slice(0, 4).map((item) => (
+              <div key={item.id} className="relative aspect-[4/3] overflow-hidden rounded-lg bg-zinc-800">
+                <img src={item.src} alt="" className="h-full w-full object-cover" loading="lazy" referrerPolicy="no-referrer" />
+                <div className="absolute left-2 top-2 max-w-[calc(100%-1rem)]">
+                  <ShowcaseSourceBadge item={item} />
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="mt-8 text-center font-display font-bold text-4xl uppercase text-zinc-300 sm:text-5xl">“Just bikes, people, and a car park on the island.”</p>
+          <p className="mt-3 text-center text-sm uppercase tracking-[0.15em] text-zinc-500">Free to attend. Every Thursday. April to September.</p>
+          </div>
         </section>
       </div>
+
+      <FacebookFeedSection />
+
+      <section id="find-us" className="bg-surface py-20">
+        <div className="shell">
+          <div className="card p-6 sm:p-8">
+          <h2 className="section-title">Find Us</h2>
+          <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_1.4fr]">
+            <div>
+              <p className="font-display font-bold text-3xl uppercase text-ink">John&apos;s Cafe</p>
+              <p className="mt-2 text-lg text-zinc-700">PO11 0AS, Hayling Island</p>
+              <p className="mt-2 text-sm text-zinc-600">Every Thursday, April to September, 5pm till late.</p>
+              <a
+                href="https://maps.google.com/?q=John%27s+Cafe+PO11+0AS"
+                target="_blank"
+                rel="noreferrer"
+                className="btn-primary mt-5"
+              >
+                Open in Google Maps
+              </a>
+            </div>
+            <div className="overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900">
+              <iframe
+                title="John's Cafe location map"
+                src="https://www.google.com/maps?q=John%27s+Cafe+PO11+0AS&output=embed"
+                className="h-[320px] w-full"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+          </div>
+          </div>
+        </div>
+      </section>
     </>
   );
 }

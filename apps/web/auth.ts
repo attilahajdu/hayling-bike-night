@@ -6,6 +6,16 @@ import Google from "next-auth/providers/google";
 
 const strapiUrl = process.env.STRAPI_URL?.replace(/\/$/, "") ?? "http://localhost:1337";
 
+function devLoginEmail(): string {
+  const explicit = process.env.DEV_LOGIN_EMAIL?.trim().toLowerCase();
+  if (explicit) return explicit;
+  const firstOwner = (process.env.OWNER_EMAILS ?? "")
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .find(Boolean);
+  return firstOwner ?? "dev@hayling-bike-night.local";
+}
+
 async function lookupStrapiUserId(email: string): Promise<number | null> {
   const token = process.env.STRAPI_API_TOKEN;
   if (!token) return null;
@@ -48,7 +58,7 @@ function buildProviders(): Provider[] {
         authorize: async () => ({
           id: "dev-user",
           name: "Local rider",
-          email: "dev@hayling-bike-night.local",
+          email: devLoginEmail(),
         }),
       }),
     );

@@ -1,8 +1,19 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { Barlow_Condensed, Inter } from "next/font/google";
 import "./globals.css";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+
+// Condensed display: load heavy masters so headings read sharp, not soft (400/600 alone feel “lifestyle” at mid sizes)
+const display = Barlow_Condensed({
+  subsets: ["latin"],
+  weight: ["500", "600", "700", "800", "900"],
+  variable: "--font-display",
+});
+const body = Inter({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-body" });
+
+const themeInitScript = `(()=>{try{var t=localStorage.getItem('hbn-theme');if(t==='light'){document.documentElement.classList.remove('dark');}else{document.documentElement.classList.add('dark');}}catch(e){document.documentElement.classList.add('dark');}})();`;
 
 export const metadata: Metadata = {
   title: {
@@ -15,12 +26,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en-GB">
-      <body className="min-h-screen flex flex-col bg-surface font-mono text-zinc-100 antialiased">
-        <a
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-accent focus:px-4 focus:py-2 focus:text-black"
-          href="#main"
-        >
+    <html lang="en-GB" className="dark" suppressHydrationWarning>
+      <body
+        className={`${display.variable} ${body.variable} min-h-screen flex flex-col bg-surface font-body text-ink antialiased`}
+      >
+        {/* Inline script in body: runs before paint; avoids next/script + App Router edge cases and manual <head>. */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <a className="skip-link" href="#main">
           Skip to content
         </a>
         <SiteHeader />

@@ -14,12 +14,12 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-12">
-      <Link href="/events" className="text-sm text-zinc-500 no-underline hover:text-accent">
+      <Link href="/events" className="text-sm text-zinc-500 no-underline hover:text-accent dark:text-zinc-400">
         ← Events
       </Link>
-      <h1 className="mt-4 font-display text-4xl uppercase text-white">{e.title}</h1>
-      <p className="mt-2 text-zinc-400">{e.location}</p>
-      <time className="mt-4 block text-sm text-zinc-500" dateTime={e.dateStart}>
+      <h1 className="mt-4 font-display text-4xl font-bold uppercase text-ink">{e.title}</h1>
+      <p className="mt-2 text-zinc-600 dark:text-zinc-400">{e.location}</p>
+      <time className="mt-4 block text-sm text-zinc-500 dark:text-zinc-400" dateTime={e.dateStart}>
         {new Date(e.dateStart).toLocaleString("en-GB", { dateStyle: "full", timeStyle: "short" })}
       </time>
       {note ? (

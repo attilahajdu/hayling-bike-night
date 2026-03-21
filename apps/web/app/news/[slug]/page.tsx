@@ -13,12 +13,12 @@ export default async function NewsArticlePage({ params }: { params: Promise<{ sl
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-12">
-      <Link href="/news" className="text-sm text-zinc-500 no-underline hover:text-accent">
+      <Link href="/news" className="text-sm text-zinc-500 no-underline hover:text-accent dark:text-zinc-400">
         ← News
       </Link>
-      <h1 className="mt-4 font-display text-4xl uppercase text-white">{n.title}</h1>
+      <h1 className="mt-4 font-display text-4xl font-bold uppercase text-ink">{n.title}</h1>
       {n.tags ? <p className="mt-2 text-xs uppercase text-accent">{n.tags}</p> : null}
-      <time className="mt-4 block text-sm text-zinc-500" dateTime={n.publishedAt}>
+      <time className="mt-4 block text-sm text-zinc-500 dark:text-zinc-400" dateTime={n.publishedAt}>
         {new Date(n.publishedAt).toLocaleDateString("en-GB", { dateStyle: "long" })}
       </time>
       <div className="mt-8">

@@ -13,3 +13,18 @@ apps/cms/exports
 apps/cms/.cache
 .npm-cache
 .config
+
+# Local run / queue (not for git)
+.local-run/
+apps/web/.local-run/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Strapi local / updater noise
+apps/cms/.strapi-updater.json
+apps/cms/.strapi/
+
+# User uploads (served locally; don’t checkpoint binaries)
+apps/cms/public/uploads/
+apps/web/public/uploads/

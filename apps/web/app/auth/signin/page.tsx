@@ -10,7 +10,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
   if (session?.user) {
     return (
       <div className="mx-auto max-w-md px-4 py-16 text-center">
-        <p className="text-zinc-300">Signed in as {session.user.email}</p>
+        <p className="text-zinc-600 dark:text-zinc-400">Signed in as {session.user.email}</p>
         <Link href={sp.callbackUrl ?? "/"} className="mt-6 inline-block text-accent">
           Continue →
         </Link>
@@ -18,10 +18,13 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
     );
   }
 
+  const oauthBtn =
+    "w-full rounded-md border border-zinc-400 bg-elevated py-3 font-display text-xl font-bold uppercase text-ink transition hover:border-accent dark:border-zinc-600 dark:text-zinc-100";
+
   return (
     <div className="mx-auto max-w-md px-4 py-16">
-      <h1 className="font-display text-4xl uppercase text-white">Sign in</h1>
-      <p className="mt-2 text-sm text-zinc-400">
+      <h1 className="font-display text-4xl font-bold uppercase text-ink">Sign in</h1>
+      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
         {hasGoogle || hasFacebook
           ? "Use a social account linked below."
           : "Add Google/Facebook OAuth keys (see README), or use dev login locally."}
@@ -34,10 +37,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
               await signIn("google", { redirectTo: sp.callbackUrl ?? "/" });
             }}
           >
-            <button
-              type="submit"
-              className="w-full rounded border border-zinc-600 bg-elevated py-3 font-display text-xl uppercase text-white hover:border-accent"
-            >
+            <button type="submit" className={oauthBtn}>
               Continue with Google
             </button>
           </form>
@@ -49,10 +49,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
               await signIn("facebook", { redirectTo: sp.callbackUrl ?? "/" });
             }}
           >
-            <button
-              type="submit"
-              className="w-full rounded border border-zinc-600 bg-elevated py-3 font-display text-xl uppercase text-white hover:border-accent"
-            >
+            <button type="submit" className={oauthBtn}>
               Continue with Facebook
             </button>
           </form>
@@ -64,7 +61,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
               await signIn("dev", { redirectTo: sp.callbackUrl ?? "/" });
             }}
           >
-            <button type="submit" className="w-full rounded bg-zinc-700 py-3 text-sm text-white">
+            <button type="submit" className="w-full rounded-md bg-zinc-700 py-3 text-sm text-zinc-100 dark:bg-zinc-600">
               Dev login (no OAuth)
             </button>
           </form>

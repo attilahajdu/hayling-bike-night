@@ -2,78 +2,142 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { setPhotoStatus } from "@/app/actions/moderation";
-import type { PhotoAttrs } from "@/lib/strapi";
-import { mediaUrl } from "@/lib/strapi";
+import { setOfficialAlbumStatus, setPhotoStatus, setPhotosStatusBulk } from "@/app/actions/moderation";
+import type { OfficialAlbumAttrs, PhotoAttrs } from "@/lib/strapi";
 
-type Item = { id: number; attributes: PhotoAttrs };
+type PhotoItem = { id: number; attributes: PhotoAttrs };
+type AlbumItem = { id: number; attributes: OfficialAlbumAttrs };
 
-export function ModerationClient({ items }: { items: Item[] }) {
+export function ModerationClient({ items, albums }: { items: PhotoItem[]; albums: AlbumItem[] }) {
   const router = useRouter();
-  const [busy, setBusy] = useState<number | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState<number[]>([]);
 
-  async function act(id: number, status: "published" | "rejected") {
-    setBusy(id);
+  async function actPhoto(id: number, status: "published" | "rejected") {
+    setBusy(`p-${id}`);
     try {
       await setPhotoStatus(id, status);
       router.refresh();
-    } catch (e) {
-      alert(e instanceof Error ? e.message : "Failed");
     } finally {
       setBusy(null);
     }
   }
 
-  if (!items.length) {
+  async function actAlbum(id: number, status: "published" | "rejected") {
+    setBusy(`a-${id}`);
+    try {
+      await setOfficialAlbumStatus(id, status);
+      router.refresh();
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  function togglePhoto(photoId: number) {
+    setSelectedPhotoIds((prev) =>
+      prev.includes(photoId) ? prev.filter((id) => id !== photoId) : [...prev, photoId],
+    );
+  }
+
+  async function approveAllPending() {
+    if (!items.length) return;
+    setBusy("p-all-approve");
+    try {
+      await setPhotosStatusBulk(items.map((it) => it.id), "published");
+      setSelectedPhotoIds([]);
+      router.refresh();
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function rejectSelected() {
+    if (!selectedPhotoIds.length) return;
+    setBusy("p-selected-reject");
+    try {
+      await setPhotosStatusBulk(selectedPhotoIds, "rejected");
+      setSelectedPhotoIds([]);
+      router.refresh();
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  if (!items.length && !albums.length) {
     return <p className="mt-8 text-xl text-zinc-500">Nothing waiting — you&apos;re caught up.</p>;
   }
 
   return (
-    <ul className="mt-8 space-y-8">
-      {items.map((it) => {
-        const p = it.attributes;
-        const img = p.image?.data?.attributes;
-        const src = p.thumbnailUrl ?? (img ? mediaUrl(img) : null);
-        return (
-          <li key={it.id} className="rounded-2xl border-2 border-zinc-700 bg-elevated p-4">
-            <div className="grid gap-4 md:grid-cols-[1fr_200px] md:items-center">
-              <div className="flex gap-4">
-                <div className="h-40 w-40 shrink-0 overflow-hidden rounded-xl border border-zinc-600 bg-black">
+    <div className="mt-8 space-y-10">
+      <section>
+        <h2 className="font-display font-bold text-2xl text-zinc-200">Community photos</h2>
+        <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-zinc-700 bg-elevated p-3">
+          <button
+            type="button"
+            disabled={busy === "p-all-approve" || !items.length}
+            onClick={approveAllPending}
+            className="min-h-[48px] rounded-xl bg-green-600 px-4 py-2 font-display font-bold text-base uppercase text-zinc-100 hover:bg-green-500 disabled:opacity-50"
+          >
+            Approve and publish images to the website
+          </button>
+          <button
+            type="button"
+            disabled={busy === "p-selected-reject" || !selectedPhotoIds.length}
+            onClick={rejectSelected}
+            className="min-h-[48px] rounded-xl border-2 border-red-500 px-4 py-2 font-display font-bold text-base uppercase text-red-300 hover:bg-red-950 disabled:opacity-50"
+          >
+            Decline selected ({selectedPhotoIds.length})
+          </button>
+          <p className="text-sm text-zinc-400">{items.length} pending image(s)</p>
+        </div>
+        <ul className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {items.map((it) => {
+            const p = it.attributes;
+            const src = p.thumbnailUrl ?? p.imageUrl ?? null;
+            const selected = selectedPhotoIds.includes(it.id);
+            return (
+              <li key={it.id} className={`overflow-hidden rounded-2xl border-2 bg-elevated ${selected ? "border-accent" : "border-zinc-700"}`}>
+                <div className="aspect-square bg-black">
                   {src ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={src} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+                    <img src={src} alt={p.title || "Pending upload"} className="h-full w-full object-cover" referrerPolicy="no-referrer" />
                   ) : (
                     <div className="flex h-full items-center justify-center text-xs text-zinc-600">No image</div>
                   )}
                 </div>
-                <div>
-                  <p className="font-display text-2xl text-white">{p.title || "Untitled"}</p>
-                  {p.caption ? <p className="mt-2 text-sm text-zinc-400">{p.caption}</p> : null}
-                  {p.submittedBy ? <p className="mt-2 text-xs text-zinc-500">From: {p.submittedBy}</p> : null}
+                <div className="space-y-2 p-3">
+                  <label className="flex items-center gap-2 text-sm text-zinc-300">
+                    <input type="checkbox" checked={selected} onChange={() => togglePhoto(it.id)} />
+                    Select to decline
+                  </label>
+                  <p className="font-display font-bold text-xl text-zinc-200">{p.title || "Untitled"}</p>
+                  {p.submittedBy ? <p className="text-xs text-zinc-500">From: {p.submittedBy}</p> : null}
+                  <div className="grid grid-cols-2 gap-2">
+                    <button type="button" disabled={busy === `p-${it.id}`} onClick={() => actPhoto(it.id, "published")} className="min-h-[42px] rounded-lg bg-green-600 px-2 py-1 text-sm uppercase text-zinc-100 hover:bg-green-500 disabled:opacity-50">Approve</button>
+                    <button type="button" disabled={busy === `p-${it.id}`} onClick={() => actPhoto(it.id, "rejected")} className="min-h-[42px] rounded-lg border border-red-500 px-2 py-1 text-sm uppercase text-red-300 hover:bg-red-950 disabled:opacity-50">Decline</button>
+                  </div>
                 </div>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <section>
+        <h2 className="font-display font-bold text-2xl text-zinc-200">Official album submissions</h2>
+        <ul className="mt-4 space-y-4">
+          {albums.map((a) => (
+            <li key={a.id} className="rounded-xl border border-zinc-700 bg-elevated p-4">
+              <p className="font-display font-bold text-xl text-zinc-200">{a.attributes.title}</p>
+              <p className="text-sm text-zinc-400">{a.attributes.submittedByName} · {a.attributes.submittedByEmail}</p>
+              <a href={a.attributes.albumUrl} target="_blank" rel="noreferrer" className="mt-1 inline-block text-sm text-accent">Open submitted album</a>
+              <div className="mt-3 flex gap-3">
+                <button type="button" disabled={busy === `a-${a.id}`} onClick={() => actAlbum(a.id, "published")} className="rounded bg-green-600 px-4 py-2 text-sm text-zinc-100">Approve</button>
+                <button type="button" disabled={busy === `a-${a.id}`} onClick={() => actAlbum(a.id, "rejected")} className="rounded border border-red-500 px-4 py-2 text-sm text-red-300">Reject</button>
               </div>
-              <div className="flex flex-col gap-3">
-                <button
-                  type="button"
-                  disabled={busy === it.id}
-                  onClick={() => act(it.id, "published")}
-                  className="min-h-[52px] rounded-xl bg-green-600 py-3 font-display text-2xl uppercase text-white hover:bg-green-500 disabled:opacity-50"
-                >
-                  Approve
-                </button>
-                <button
-                  type="button"
-                  disabled={busy === it.id}
-                  onClick={() => act(it.id, "rejected")}
-                  className="min-h-[52px] rounded-xl border-2 border-red-500 py-3 font-display text-2xl uppercase text-red-400 hover:bg-red-950 disabled:opacity-50"
-                >
-                  Reject
-                </button>
-              </div>
-            </div>
-          </li>
-        );
-      })}
-    </ul>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
   );
 }

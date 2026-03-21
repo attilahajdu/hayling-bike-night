@@ -1,6 +1,6 @@
 import path from "path";
 
-export default ({ env }: { env: (k: string, d?: string) => string }) => {
+export default ({ env }: { env: any }) => {
   const client = env("DATABASE_CLIENT", "postgres");
 
   if (client === "sqlite") {
