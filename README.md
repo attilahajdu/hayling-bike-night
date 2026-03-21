@@ -151,6 +151,8 @@ git push -u origin master
 git push origin checkpoint-2026-03-20   # optional: push the annotated checkpoint tag
 ```
 
+If `git push` prints `RPC failed; HTTP 400` or `send-pack: unexpected disconnect`, GitHub usually rejected the upload: check the token has push rights (**classic PAT**: `repo` scope; **fine-grained PAT**: **Contents: Read and write** on this repository). Also try without an HTTP proxy/VPN, or switch the remote to SSH (`git@github.com:attilahajdu/hayling-bike-night.git`) if `ssh -T git@github.com` works.
+
 ## Owner guide (non-technical)
 
 See [docs/OWNER_GUIDE.md](docs/OWNER_GUIDE.md) for moderation and tagging.
