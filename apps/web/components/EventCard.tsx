@@ -88,14 +88,6 @@ export function EventCard({
         >
           Details →
         </Link>
-        <a
-          href="/api/calendar.ics"
-          className={`ml-4 inline-flex text-xs font-medium no-underline opacity-90 hover:underline ${
-            featured ? "text-[rgb(var(--color-on-accent))]/90" : "text-zinc-500 dark:text-zinc-400"
-          }`}
-        >
-          Add to calendar
-        </a>
       </div>
     </article>
   );

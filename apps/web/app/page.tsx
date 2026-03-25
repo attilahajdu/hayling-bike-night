@@ -168,10 +168,11 @@ export default async function HomePage() {
           <div className="shell">
             <div className="mb-2 flex flex-wrap items-end justify-between gap-3">
               <div>
-                <h3 className="font-display font-bold text-3xl uppercase text-ink">Community Submitted Photos</h3>
-                <p className="mt-1 max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                  <span className="font-semibold text-ink dark:text-zinc-200">{statNumber(publishedCommunityTotal)}</span> community
-                  photos published in the gallery in total. In the past 7 days we received{" "}
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">From the car park</p>
+                <h3 className="mt-2 font-display font-bold text-3xl uppercase text-ink">Community photos</h3>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                  <span className="font-semibold text-ink dark:text-zinc-200">{statNumber(publishedCommunityTotal)}</span> published
+                  in the gallery. In the past 7 days we received{" "}
                   <span className="font-semibold text-ink dark:text-zinc-200">{statNumber(publishedCommunityLast7Days)}</span>.
                 </p>
               </div>
@@ -247,36 +248,60 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="bg-white py-20 dark:bg-zinc-950">
+        <section className="relative overflow-hidden bg-white py-20 dark:bg-zinc-950">
+          <div
+            className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent"
+            aria-hidden
+          />
           <div className="shell">
-          <div className="mb-4 flex items-end justify-between gap-3">
-            <h2 className="section-title">Local events</h2>
-            <Link href="/events" className="text-sm text-ink">
-              View all →
-            </Link>
-          </div>
-          <div className="flex gap-4 overflow-x-auto pb-3 pt-1 [scrollbar-width:thin]">
-            {apiEvents.length ? (
-              apiEvents.map((row, idx) => (
-                <EventCard
-                  key={row.id}
-                  attrs={row.attributes}
-                  href={`/events/${row.attributes.slug}`}
-                  featured={idx === 0}
-                  showForecast={idx === 0}
-                  forecastText={idx === 0 ? nextUpcomingForecast : null}
-                />
-              ))
-            ) : (
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                No upcoming dates yet — see{" "}
-                <Link href="/events" className="font-medium text-accent no-underline hover:underline">
-                  local events
-                </Link>{" "}
-                or submit a community listing.
-              </p>
-            )}
-          </div>
+            <div className="mb-8 flex flex-col gap-6 border-b border-zinc-200 pb-8 dark:border-zinc-800 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-accent">Plan your week</p>
+                <h2 className="mt-2 section-title">Local events</h2>
+                <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                  Bike Night meets and community rides. Submit your own meet — organisers approve before it goes live.
+                </p>
+              </div>
+              <div className="flex flex-col gap-3 sm:items-end">
+                <Link
+                  href="/events#submit-event"
+                  className="inline-flex items-center justify-center rounded-xl bg-accent px-5 py-3 font-display text-sm font-bold uppercase tracking-wide text-[rgb(var(--color-on-accent))] no-underline shadow-md shadow-accent/25 transition hover:brightness-110"
+                >
+                  Submit a ride or meet →
+                </Link>
+                <Link href="/events" className="text-sm font-medium text-accent no-underline hover:underline">
+                  Browse all events →
+                </Link>
+              </div>
+            </div>
+            <div className="flex gap-4 overflow-x-auto pb-3 pt-1 [scrollbar-width:thin]">
+              {apiEvents.length ? (
+                apiEvents.map((row, idx) => (
+                  <EventCard
+                    key={row.id}
+                    attrs={row.attributes}
+                    href={`/events/${row.attributes.slug}`}
+                    featured={idx === 0}
+                    showForecast={idx === 0}
+                    forecastText={idx === 0 ? nextUpcomingForecast : null}
+                  />
+                ))
+              ) : (
+                <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-10 dark:border-zinc-600 dark:bg-zinc-900/50">
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    No upcoming dates yet — open{" "}
+                    <Link href="/events" className="font-medium text-accent no-underline hover:underline">
+                      local events
+                    </Link>{" "}
+                    or{" "}
+                    <Link href="/events#submit-event" className="font-medium text-accent no-underline hover:underline">
+                      submit a listing
+                    </Link>
+                    .
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </section>
 

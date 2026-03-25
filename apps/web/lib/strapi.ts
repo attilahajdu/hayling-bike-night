@@ -1,5 +1,55 @@
 const STRAPI = process.env.STRAPI_URL?.replace(/\/$/, "") ?? "http://localhost:1337";
 
+/** True when STRAPI_URL points at a deployed host (not local). Used for media URL resolution. */
+function strapiHostIsRemote(): boolean {
+  const u = (process.env.STRAPI_URL ?? "").toLowerCase();
+  return Boolean(u && !u.includes("localhost") && !u.includes("127.0.0.1"));
+}
+
+/**
+ * Strapi often stores file paths as `/uploads/...`. The browser resolves those against the **website** origin,
+ * so on Netlify the image requests hit the wrong host and break. Prefix with STRAPI when media lives on Strapi.
+ * Local `public/uploads` (same origin) stays relative when Strapi is localhost.
+ */
+export function strapiMediaUrl(url: string | null | undefined): string | null {
+  if (url == null) return null;
+  const u = String(url).trim();
+  if (!u) return null;
+  if (/^https?:\/\//i.test(u)) return u;
+  if (u.startsWith("//")) return `https:${u}`;
+  const path = u.startsWith("/") ? u : `/${u}`;
+  if (!path.startsWith("/uploads/")) return path;
+  if (strapiHostIsRemote()) return `${STRAPI}${path}`;
+  return path;
+}
+
+function normalizePhotoAttrs(attrs: PhotoAttrs): PhotoAttrs {
+  return {
+    ...attrs,
+    imageUrl: strapiMediaUrl(attrs.imageUrl),
+    thumbnailUrl: strapiMediaUrl(attrs.thumbnailUrl),
+  };
+}
+
+function normalizePhotoListResponse(res: ListResponse<PhotoAttrs> | null): ListResponse<PhotoAttrs> | null {
+  if (!res?.data?.length) return res;
+  return {
+    ...res,
+    data: res.data.map((row) => ({ ...row, attributes: normalizePhotoAttrs(row.attributes) })),
+  };
+}
+
+function normalizePhotoSingle(res: SingleResponse<PhotoAttrs> | null): SingleResponse<PhotoAttrs> | null {
+  if (!res?.data?.attributes) return res;
+  return {
+    ...res,
+    data: {
+      ...res.data,
+      attributes: normalizePhotoAttrs(res.data.attributes),
+    },
+  };
+}
+
 /** Avoid flooding the dev console when Strapi is stopped (many parallel fetches on HomePage). */
 let strapiNetworkWarned = false;
 
@@ -151,9 +201,11 @@ async function strapiFetchPhotosBare(
   params.set("pagination[pageSize]", String(Math.min(pageSize, 100)));
   params.set("filters[status][$eq]", status);
   params.set("sort", "createdAt:desc");
-  return strapiFetch<ListResponse<PhotoAttrs>>(`/photos?${params.toString()}`, {
-    next: { revalidate: 30 },
-  });
+  return normalizePhotoListResponse(
+    await strapiFetch<ListResponse<PhotoAttrs>>(`/photos?${params.toString()}`, {
+      next: { revalidate: 30 },
+    }),
+  );
 }
 
 /** No populate — album list still has scalars (title, albumUrl, coverImageUrl, …). */
@@ -483,7 +535,7 @@ export async function getPhotos(options: {
   const res = await strapiFetch<ListResponse<PhotoAttrs>>(url, {
     next: { revalidate: 30 },
   });
-  if (res) return res;
+  if (res) return normalizePhotoListResponse(res);
   // Text-search $or can 400 — retry same scope without `q`.
   if (options.q?.trim()) {
     return getPhotos({
@@ -624,7 +676,8 @@ export async function getPhotoById(id: number) {
   const res = await strapiFetch<SingleResponse<PhotoAttrs>>(`/photos/${id}?populate=*`, {
     next: { revalidate: 30 },
   });
-  return res?.data ?? null;
+  const normalized = normalizePhotoSingle(res);
+  return normalized?.data ?? null;
 }
 
 export async function getPhotographers() {
@@ -643,7 +696,8 @@ export async function getPendingPhotos(token: string) {
     },
   );
   if (!res.ok) return null;
-  return (await res.json()) as ListResponse<PhotoAttrs>;
+  const json = (await res.json()) as ListResponse<PhotoAttrs>;
+  return normalizePhotoListResponse(json);
 }
 
 export async function getPendingOfficialAlbums(token: string) {

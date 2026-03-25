@@ -70,12 +70,9 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
             <p className="mt-4 text-xs text-zinc-500">Listed by {e.submitterName}</p>
           ) : null}
           <div className="mt-8 flex flex-wrap gap-4">
-            <a href="/api/calendar.ics" className="btn-primary inline-flex">
-              Add to calendar (.ics)
-            </a>
             <Link
               href="/events"
-              className="inline-flex items-center justify-center rounded-lg border border-zinc-300 bg-white px-5 py-3 text-sm font-semibold text-ink no-underline transition hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+              className="btn-primary inline-flex items-center justify-center no-underline"
             >
               All events
             </Link>

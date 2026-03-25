@@ -42,10 +42,15 @@ export function CommunityEventSubmitForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="card space-y-4 p-6 sm:p-8">
+    <form
+      onSubmit={onSubmit}
+      className="space-y-6 rounded-3xl border border-zinc-200/90 bg-gradient-to-b from-white to-zinc-50/80 p-6 shadow-[0_24px_60px_-28px_rgba(0,0,0,0.2)] sm:p-10 dark:border-zinc-700 dark:from-zinc-900 dark:to-zinc-950/90"
+    >
       <div>
-        <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-ink">Submit a community event</h2>
-        <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+        <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-ink sm:text-3xl">
+          Submit a ride or meet
+        </h2>
+        <p className="mt-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
           Rides, meets, fundraisers — anything bike-related on Hayling or nearby. We&apos;ll review it before it goes
           live.
         </p>
