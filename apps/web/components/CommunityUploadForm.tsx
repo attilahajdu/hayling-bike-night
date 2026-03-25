@@ -38,7 +38,9 @@ export function CommunityUploadForm() {
         const detail = url.searchParams.get("detail");
         if (err === "too-many") setNote("Please upload up to 20 images at a time.");
         else if (detail === "401" || detail === "403")
-          setNote("Upload failed: the site could not authenticate with the photo server. Ask the admin to check API tokens.");
+          setNote(
+            "Strapi rejected the API token (this check runs on Netlify’s server, so the browser console stays empty). Re-paste STRAPI_API_TOKEN in Netlify with no spaces or quotes, or open Strapi on Render → Settings → API Tokens → regenerate, then paste the new value into Netlify and redeploy.",
+          );
         else if (detail === "404")
           setNote(
             "Upload failed: the photo server is missing the upload route. Deploy the latest Strapi (CMS) from GitHub, then try again.",

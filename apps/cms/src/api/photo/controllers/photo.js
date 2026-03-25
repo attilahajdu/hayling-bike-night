@@ -5,23 +5,42 @@ const path = require("path");
 const crypto = require("crypto");
 const { createCoreController } = require("@strapi/strapi").factories;
 
+function timingSafeEqualStrings(a, b) {
+  if (typeof a !== "string" || typeof b !== "string" || !a.length || a.length !== b.length) {
+    return false;
+  }
+  try {
+    return crypto.timingSafeEqual(Buffer.from(a, "utf8"), Buffer.from(b, "utf8"));
+  } catch {
+    return false;
+  }
+}
+
 module.exports = createCoreController("api::photo.photo", ({ strapi }) => ({
   /**
    * Multipart field name must be `files` (Strapi body parser).
-   * Auth: Bearer token must match a row in admin::api-token (same salt as Render).
+   * Auth (either):
+   * - Bearer API token (must match DB hash; same API_TOKEN_SALT as when token was created), or
+   * - Header x-community-upload-secret matching COMMUNITY_UPLOAD_SECRET (optional; avoids token/salt drift).
    */
   async uploadCommunityImage(ctx) {
-    const raw = ctx.request.headers.authorization;
-    const bearer = typeof raw === "string" && raw.startsWith("Bearer ") ? raw.slice(7).trim() : "";
-    if (!bearer) {
-      return ctx.unauthorized();
-    }
+    const shared = process.env.COMMUNITY_UPLOAD_SECRET?.trim();
+    const headerSecret = ctx.get("x-community-upload-secret")?.trim();
+    let authorized = shared && headerSecret && timingSafeEqualStrings(shared, headerSecret);
 
-    const apiTokenService = strapi.admin.services["api-token"];
-    const hashed = apiTokenService.hash(bearer);
-    const tokenRow = await strapi.query("admin::api-token").findOne({ where: { accessKey: hashed } });
-    if (!tokenRow) {
-      return ctx.unauthorized();
+    if (!authorized) {
+      const raw = ctx.request.headers.authorization;
+      const bearer = typeof raw === "string" && raw.startsWith("Bearer ") ? raw.slice(7).trim() : "";
+      if (!bearer) {
+        return ctx.unauthorized();
+      }
+
+      const apiTokenService = strapi.admin.services["api-token"];
+      const tokenRow = await apiTokenService.getBy({ accessKey: apiTokenService.hash(bearer) });
+      if (!tokenRow) {
+        return ctx.unauthorized();
+      }
+      authorized = true;
     }
 
     const rawFiles = ctx.request.files?.files;

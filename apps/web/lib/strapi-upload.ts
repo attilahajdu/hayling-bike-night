@@ -1,5 +1,8 @@
 const STRAPI = process.env.STRAPI_URL?.replace(/\/$/, "") ?? "http://localhost:1337";
-const TOKEN = process.env.STRAPI_API_TOKEN;
+/** Trim: Netlify UI sometimes adds accidental whitespace. */
+const TOKEN = process.env.STRAPI_API_TOKEN?.trim();
+/** Optional shared secret (same on Netlify + Strapi/Render) — bypasses API token hash issues. */
+const COMMUNITY_UPLOAD_SECRET = process.env.COMMUNITY_UPLOAD_SECRET?.trim();
 
 /** Netlify/Vercel/AWS Lambda cannot persist writes to `public/uploads`. */
 export function isServerlessRuntime(): boolean {
@@ -30,9 +33,13 @@ export async function saveImageViaStrapi(
   const form = new FormData();
   form.append("files", file);
   const q = folder === "pro" ? "?folder=pro" : "";
+  const headers: Record<string, string> = {};
+  if (TOKEN) headers.Authorization = `Bearer ${TOKEN}`;
+  if (COMMUNITY_UPLOAD_SECRET) headers["x-community-upload-secret"] = COMMUNITY_UPLOAD_SECRET;
+
   const res = await fetch(`${STRAPI}/api/photos/community-image${q}`, {
     method: "POST",
-    headers: TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {},
+    headers: Object.keys(headers).length ? headers : {},
     body: form,
   });
   if (!res.ok) {

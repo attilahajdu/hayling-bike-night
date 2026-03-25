@@ -6,7 +6,7 @@ import { redirectSameOrigin } from "@/lib/request-site";
 import { shouldUploadViaStrapi, saveImageViaStrapi } from "@/lib/strapi-upload";
 
 const STRAPI = process.env.STRAPI_URL?.replace(/\/$/, "") ?? "http://localhost:1337";
-const TOKEN = process.env.STRAPI_API_TOKEN;
+const TOKEN = process.env.STRAPI_API_TOKEN?.trim();
 
 function safe(v: FormDataEntryValue | null) {
   return typeof v === "string" ? v.trim() : "";

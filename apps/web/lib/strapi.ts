@@ -92,7 +92,7 @@ type SingleResponse<T> = {
 };
 
 function authHeaders(): HeadersInit {
-  const t = process.env.STRAPI_API_TOKEN;
+  const t = process.env.STRAPI_API_TOKEN?.trim();
   return t ? { Authorization: `Bearer ${t}` } : {};
 }
 
