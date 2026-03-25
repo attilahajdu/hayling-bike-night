@@ -73,3 +73,37 @@ export async function setOfficialAlbumStatus(albumId: number, status: "published
     throw new Error(`Strapi error ${res.status}: ${t}`);
   }
 }
+
+export async function publishCommunityEvent(eventId: number) {
+  await requireOwner();
+  if (!TOKEN) throw new Error("Missing STRAPI_API_TOKEN");
+
+  const res = await fetch(`${STRAPI}/api/events/${eventId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${TOKEN}`,
+    },
+    body: JSON.stringify({ data: { publishedAt: new Date().toISOString() } }),
+  });
+
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`Strapi error ${res.status}: ${t}`);
+  }
+}
+
+export async function deleteCommunityEventSubmission(eventId: number) {
+  await requireOwner();
+  if (!TOKEN) throw new Error("Missing STRAPI_API_TOKEN");
+
+  const res = await fetch(`${STRAPI}/api/events/${eventId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${TOKEN}` },
+  });
+
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`Strapi error ${res.status}: ${t}`);
+  }
+}

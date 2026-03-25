@@ -9,7 +9,12 @@ export type EventAttrs = {
   dateStart: string;
   dateEnd: string;
   location: string;
-  note?: string | null;
+  /** Strapi richtext may be string or block JSON */
+  note?: unknown;
+  /** Official weekly meet vs rider-submitted listing */
+  eventKind?: "bike_night" | "community" | null;
+  submitterName?: string | null;
+  submitterEmail?: string | null;
 };
 
 export type NewsAttrs = {
@@ -183,6 +188,14 @@ export async function getEventBySlug(slug: string) {
     { next: { revalidate: 120 } },
   );
   return res?.data?.[0] ?? null;
+}
+
+/** Draft community submissions (Strapi draft / preview), for owner moderation only. */
+export async function getPendingCommunityEvents() {
+  return strapiFetch<ListResponse<EventAttrs>>(
+    `/events?filters[eventKind][$eq]=community&publicationState=preview&sort=createdAt:desc&pagination[pageSize]=50`,
+    { cache: "no-store" },
+  );
 }
 
 export async function getNewsList() {

@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { ModerationClient } from "@/components/ModerationClient";
-import { getPendingOfficialAlbums, getPendingPhotos } from "@/lib/strapi";
+import { getPendingCommunityEvents, getPendingOfficialAlbums, getPendingPhotos } from "@/lib/strapi";
 import { isOwnerEmail } from "@/lib/owner";
 import { redirect } from "next/navigation";
 
@@ -18,13 +18,19 @@ export default async function OwnerModerationPage() {
     return <div className="mx-auto max-w-lg px-4 py-16 text-center"><h1 className="font-display font-bold text-3xl text-zinc-200">Configure API token</h1><p className="mt-4 text-zinc-400">Set STRAPI_API_TOKEN on the server to load the queue.</p></div>;
   }
 
-  const [photoRes, albumRes] = await Promise.all([getPendingPhotos(token), getPendingOfficialAlbums(token)]);
+  const [photoRes, albumRes, eventRes] = await Promise.all([
+    getPendingPhotos(token),
+    getPendingOfficialAlbums(token),
+    getPendingCommunityEvents(),
+  ]);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <h1 className="font-display font-bold text-4xl uppercase text-zinc-200">Moderation queue</h1>
-      <p className="mt-2 text-lg text-zinc-400">Approve or reject community uploads and pro album submissions.</p>
-      <ModerationClient items={photoRes?.data ?? []} albums={albumRes?.data ?? []} />
+      <p className="mt-2 text-lg text-zinc-400">
+        Approve community events, photo uploads, and pro album submissions before they go public.
+      </p>
+      <ModerationClient items={photoRes?.data ?? []} albums={albumRes?.data ?? []} events={eventRes?.data ?? []} />
     </div>
   );
 }

@@ -18,6 +18,13 @@
       "default": "John's Café, Hayling Island · PO11 0AS"
     },
     "note": { "type": "richtext" },
+    "eventKind": {
+      "type": "enumeration",
+      "enum": ["bike_night", "community"],
+      "default": "bike_night"
+    },
+    "submitterName": { "type": "string" },
+    "submitterEmail": { "type": "email" },
     "photos": {
       "type": "relation",
       "relation": "oneToMany",

@@ -8,6 +8,21 @@ function escapeText(s: string): string {
   return s.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/;/g, "\\;").replace(/,/g, "\\,");
 }
 
+function noteToPlain(note: unknown): string {
+  if (typeof note === "string") return note;
+  if (Array.isArray(note)) {
+    const lines: string[] = [];
+    for (const block of note) {
+      if (block && typeof block === "object" && "children" in block) {
+        const children = (block as { children?: Array<{ text?: string }> }).children ?? [];
+        lines.push(children.map((c) => c.text ?? "").join(""));
+      }
+    }
+    return lines.join("\n\n");
+  }
+  return "";
+}
+
 /** Build a minimal VCALENDAR for Bike Night events (Google/Apple Calendar compatible). */
 export function buildEventsIcs(events: Array<{ id: number; attributes: EventAttrs }>, calendarName: string): string {
   const lines = [
@@ -30,8 +45,9 @@ export function buildEventsIcs(events: Array<{ id: number; attributes: EventAttr
     lines.push(`DTEND:${formatIcsDate(end)}`);
     lines.push(`SUMMARY:${escapeText(a.title)}`);
     lines.push(`LOCATION:${escapeText(a.location || "John's Café, Hayling Island")}`);
-    if (a.note) {
-      lines.push(`DESCRIPTION:${escapeText(a.note)}`);
+    const desc = noteToPlain(a.note);
+    if (desc) {
+      lines.push(`DESCRIPTION:${escapeText(desc.slice(0, 2400))}`);
     }
     lines.push("END:VEVENT");
   }

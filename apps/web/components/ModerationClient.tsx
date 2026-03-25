@@ -2,13 +2,28 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { setOfficialAlbumStatus, setPhotoStatus, setPhotosStatusBulk } from "@/app/actions/moderation";
-import type { OfficialAlbumAttrs, PhotoAttrs } from "@/lib/strapi";
+import {
+  deleteCommunityEventSubmission,
+  publishCommunityEvent,
+  setOfficialAlbumStatus,
+  setPhotoStatus,
+  setPhotosStatusBulk,
+} from "@/app/actions/moderation";
+import type { EventAttrs, OfficialAlbumAttrs, PhotoAttrs } from "@/lib/strapi";
 
 type PhotoItem = { id: number; attributes: PhotoAttrs };
 type AlbumItem = { id: number; attributes: OfficialAlbumAttrs };
+type EventItem = { id: number; attributes: EventAttrs };
 
-export function ModerationClient({ items, albums }: { items: PhotoItem[]; albums: AlbumItem[] }) {
+export function ModerationClient({
+  items,
+  albums,
+  events,
+}: {
+  items: PhotoItem[];
+  albums: AlbumItem[];
+  events: EventItem[];
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<number[]>([]);
@@ -51,6 +66,17 @@ export function ModerationClient({ items, albums }: { items: PhotoItem[]; albums
     }
   }
 
+  async function actEvent(id: number, action: "publish" | "delete") {
+    setBusy(`e-${id}`);
+    try {
+      if (action === "publish") await publishCommunityEvent(id);
+      else await deleteCommunityEventSubmission(id);
+      router.refresh();
+    } finally {
+      setBusy(null);
+    }
+  }
+
   async function rejectSelected() {
     if (!selectedPhotoIds.length) return;
     setBusy("p-selected-reject");
@@ -63,12 +89,56 @@ export function ModerationClient({ items, albums }: { items: PhotoItem[]; albums
     }
   }
 
-  if (!items.length && !albums.length) {
+  if (!items.length && !albums.length && !events.length) {
     return <p className="mt-8 text-xl text-zinc-500">Nothing waiting — you&apos;re caught up.</p>;
   }
 
   return (
     <div className="mt-8 space-y-10">
+      <section>
+        <h2 className="font-display font-bold text-2xl text-zinc-200">Community event submissions</h2>
+        {events.length === 0 ? (
+          <p className="mt-2 text-sm text-zinc-500">No pending event listings.</p>
+        ) : (
+          <ul className="mt-4 space-y-4">
+            {events.map((ev) => {
+              const a = ev.attributes;
+              const when = new Date(a.dateStart).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
+              return (
+                <li key={ev.id} className="rounded-xl border border-zinc-700 bg-elevated p-4">
+                  <p className="font-display font-bold text-xl text-zinc-200">{a.title}</p>
+                  <p className="mt-1 text-sm text-zinc-400">{when}</p>
+                  <p className="mt-1 text-sm text-zinc-400">{a.location}</p>
+                  {a.submitterName || a.submitterEmail ? (
+                    <p className="mt-2 text-xs text-zinc-500">
+                      From: {a.submitterName ?? "—"} · {a.submitterEmail ?? "—"}
+                    </p>
+                  ) : null}
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      disabled={busy === `e-${ev.id}`}
+                      onClick={() => actEvent(ev.id, "publish")}
+                      className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-zinc-100 hover:bg-green-500 disabled:opacity-50"
+                    >
+                      Approve & publish
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy === `e-${ev.id}`}
+                      onClick={() => actEvent(ev.id, "delete")}
+                      className="rounded-lg border border-red-500 px-4 py-2 text-sm font-semibold text-red-300 hover:bg-red-950 disabled:opacity-50"
+                    >
+                      Decline (delete)
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
       <section>
         <h2 className="font-display font-bold text-2xl text-zinc-200">Community photos</h2>
         <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-zinc-700 bg-elevated p-3">

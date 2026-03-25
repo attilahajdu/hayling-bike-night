@@ -1,10 +1,10 @@
 import Link from "next/link";
+import { EventCard } from "@/components/EventCard";
 import { FacebookFeedSection } from "@/components/FacebookFeedSection";
 import { Hero } from "@/components/Hero";
 import { HomeCommunityPreview } from "@/components/HomeCommunityPreview";
 import { LandingShowcaseStrip, type ShowcaseItem } from "@/components/LandingShowcaseStrip";
 import { getFacebookMedia } from "@/lib/facebook";
-import type { EventAttrs } from "@/lib/strapi";
 import { getEvents, getGalleryEntries, getOfficialAlbums, getPhotos, getPublishedCommunityPhotoTotal } from "@/lib/strapi";
 import { getForecastForDate } from "@/lib/weather";
 
@@ -30,78 +30,6 @@ export default async function HomePage() {
     uploader: "haylingbikenight",
   }));
   const apiEvents = (events?.data ?? []).slice(0, 8);
-  const escortDate = new Date();
-  escortDate.setDate(escortDate.getDate() + 12);
-  escortDate.setHours(18, 0, 0, 0);
-  const sadekDate = new Date();
-  sadekDate.setDate(sadekDate.getDate() + 26);
-  sadekDate.setHours(10, 0, 0, 0);
-
-  type HomeEventRow =
-    | { kind: "strapi"; id: number; attrs: EventAttrs }
-    | { kind: "static"; id: string; attrs: { title: string; dateStart: string; note: string } };
-
-  const homeEventRows: HomeEventRow[] = [];
-  apiEvents.forEach((e, i) => {
-    homeEventRows.push({ kind: "strapi", id: e.id, attrs: e.attributes });
-    if (i === 0) {
-      homeEventRows.push({
-        kind: "static",
-        id: "home-bike-escort",
-        attrs: {
-          title: "Bike escort",
-          dateStart: escortDate.toISOString(),
-          note: "Rolling out together — check socials for meet time & route.",
-        },
-      });
-    }
-    if (i === 1) {
-      homeEventRows.push({
-        kind: "static",
-        id: "home-sadek-ride",
-        attrs: {
-          title: "Sadek ride out",
-          dateStart: sadekDate.toISOString(),
-          note: "Community-led ride — pace social, all bikes welcome.",
-        },
-      });
-    }
-  });
-
-  if (homeEventRows.length === 0) {
-    const fallbackMeet = new Date();
-    fallbackMeet.setDate(fallbackMeet.getDate() + ((4 + 7 - fallbackMeet.getDay()) % 7 || 7));
-    fallbackMeet.setHours(17, 0, 0, 0);
-    homeEventRows.push(
-      {
-        kind: "static",
-        id: "home-fallback-bike-night",
-        attrs: {
-          title: "Hayling Bike Night",
-          dateStart: fallbackMeet.toISOString(),
-          note: "Weekly meet — John’s Cafe, PO11 0AS. Season dates appear here when published.",
-        },
-      },
-      {
-        kind: "static",
-        id: "home-bike-escort",
-        attrs: {
-          title: "Bike escort",
-          dateStart: escortDate.toISOString(),
-          note: "Rolling out together — check socials for meet time & route.",
-        },
-      },
-      {
-        kind: "static",
-        id: "home-sadek-ride",
-        attrs: {
-          title: "Sadek ride out",
-          dateStart: sadekDate.toISOString(),
-          note: "Community-led ride — pace social, all bikes welcome.",
-        },
-      },
-    );
-  }
 
   const nextStrapiEvent = apiEvents[0];
   const nextUpcomingForecast = nextStrapiEvent ? await getForecastForDate(nextStrapiEvent.attributes.dateStart) : null;
@@ -328,63 +256,26 @@ export default async function HomePage() {
             </Link>
           </div>
           <div className="flex gap-4 overflow-x-auto pb-3 pt-1 [scrollbar-width:thin]">
-            {homeEventRows.map((row, idx) => {
-              const d = new Date(row.attrs.dateStart);
-              const title = row.attrs.title;
-              const isOfficial = /hayling bike night/i.test(row.attrs.title);
-              const isFeatured = idx === 0;
-              return (
-                <article
-                  key={row.kind === "strapi" ? row.id : row.id}
-                  className={`flex min-w-[220px] max-w-[240px] flex-col rounded-lg border p-5 shadow-sm ${
-                    isFeatured
-                      ? "border-accent/40 bg-accent text-[rgb(var(--color-on-accent))] shadow-md shadow-accent/15"
-                      : "border-zinc-200 bg-white text-ink dark:border-zinc-700 dark:bg-[rgb(var(--color-card))]"
-                  }`}
-                >
-                  <p
-                    className={`inline-flex w-fit rounded px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${
-                      isFeatured
-                        ? "bg-white/15 text-[rgb(var(--color-on-accent))]"
-                        : isOfficial
-                          ? "bg-accent/15 text-accent"
-                          : "bg-zinc-200 text-zinc-700"
-                    }`}
-                  >
-                    {isOfficial ? "Bike Night" : "Community event"}
-                  </p>
-                  <p className={`mt-4 font-display font-bold text-5xl leading-none ${isFeatured ? "text-[rgb(var(--color-on-accent))]" : "text-ink"}`}>
-                    {d.getDate()}
-                  </p>
-                  <p
-                    className={`text-sm uppercase ${isFeatured ? "text-[rgb(var(--color-on-accent))]/90" : "text-zinc-600 dark:text-zinc-400"}`}
-                  >
-                    {d.toLocaleDateString("en-GB", { month: "short", weekday: "short" })}
-                  </p>
-                  <p className={`mt-3 font-display font-bold text-lg uppercase leading-snug ${isFeatured ? "text-[rgb(var(--color-on-accent))]" : "text-ink"}`}>
-                    {title}
-                  </p>
-                  <p className={`mt-2 text-xs leading-relaxed ${isFeatured ? "text-[rgb(var(--color-on-accent))]/85" : "text-zinc-600 dark:text-zinc-400"}`}>
-                    {row.kind === "strapi"
-                      ? idx === 0
-                        ? row.attrs.location
-                          ? `Next meet — ${row.attrs.location}`
-                          : "Next meet — John’s Cafe, PO11 0AS"
-                        : row.attrs.location || "Hayling Island"
-                      : row.attrs.note}
-                  </p>
-                  {isFeatured && nextUpcomingForecast && row.kind === "strapi" ? (
-                    <p className="mt-2 text-xs text-[rgb(var(--color-on-accent))]/90">Forecast: {nextUpcomingForecast}</p>
-                  ) : null}
-                  <a
-                    href="/api/calendar.ics"
-                    className={`mt-4 inline-block text-xs font-medium no-underline hover:underline ${isFeatured ? "text-[rgb(var(--color-on-accent))]" : "text-accent"}`}
-                  >
-                    Add to calendar
-                  </a>
-                </article>
-              );
-            })}
+            {apiEvents.length ? (
+              apiEvents.map((row, idx) => (
+                <EventCard
+                  key={row.id}
+                  attrs={row.attributes}
+                  href={`/events/${row.attributes.slug}`}
+                  featured={idx === 0}
+                  showForecast={idx === 0}
+                  forecastText={idx === 0 ? nextUpcomingForecast : null}
+                />
+              ))
+            ) : (
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                No upcoming dates yet — see{" "}
+                <Link href="/events" className="font-medium text-accent no-underline hover:underline">
+                  local events
+                </Link>{" "}
+                or submit a community listing.
+              </p>
+            )}
           </div>
           </div>
         </section>

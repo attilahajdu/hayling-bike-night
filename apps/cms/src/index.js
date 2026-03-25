@@ -27,6 +27,7 @@ async function seedEvents(strapi) {
         dateEnd: dateEnd.toISOString(),
         location: "John's Café, Hayling Island · PO11 0AS",
         note: "Weekly marshalled meet. Check news for weather or charity ride notes.",
+        eventKind: "bike_night",
         publishedAt: new Date(),
       });
     }
