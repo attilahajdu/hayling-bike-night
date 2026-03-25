@@ -3,7 +3,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { redirectSameOrigin } from "@/lib/request-site";
-import { isServerlessRuntime, saveImageViaStrapi } from "@/lib/strapi-upload";
+import { shouldUploadViaStrapi, saveImageViaStrapi } from "@/lib/strapi-upload";
 
 const STRAPI = process.env.STRAPI_URL?.replace(/\/$/, "") ?? "http://localhost:1337";
 const TOKEN = process.env.STRAPI_API_TOKEN;
@@ -74,7 +74,8 @@ export async function POST(req: Request) {
   let savedCount = 0;
   let queuedCount = 0;
 
-  const useStrapiDisk = isServerlessRuntime();
+  const useStrapiDisk = shouldUploadViaStrapi();
+  let lastUploadError = "";
 
   for (const photoFile of photoFiles) {
     let imageUrl = "";
@@ -82,7 +83,10 @@ export async function POST(req: Request) {
       imageUrl = useStrapiDisk
         ? await saveImageViaStrapi(photoFile, "community")
         : await saveImage(photoFile, "community");
-    } catch {
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      lastUploadError = msg;
+      console.error("[community-upload] save failed", msg);
       continue;
     }
 
@@ -123,7 +127,10 @@ export async function POST(req: Request) {
   }
 
   if (savedCount === 0 && queuedCount === 0) {
-    return redirectTo(req, "/upload?error=file");
+    const m = /strapi-upload-(\d+)/.exec(lastUploadError);
+    const detail = m?.[1] ?? "";
+    const q = detail ? `?error=file&detail=${encodeURIComponent(detail)}` : "?error=file";
+    return redirectTo(req, `/upload${q}`);
   }
   return redirectTo(req, `/upload?ok=1&count=${savedCount}&queued=${queuedCount}`);
 }

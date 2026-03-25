@@ -35,7 +35,15 @@ export function CommunityUploadForm() {
       } else {
         setStatus("error");
         const err = url.searchParams.get("error");
+        const detail = url.searchParams.get("detail");
         if (err === "too-many") setNote("Please upload up to 20 images at a time.");
+        else if (detail === "401" || detail === "403")
+          setNote("Upload failed: the site could not authenticate with the photo server. Ask the admin to check API tokens.");
+        else if (detail === "404")
+          setNote(
+            "Upload failed: the photo server is missing the upload route. Deploy the latest Strapi (CMS) from GitHub, then try again.",
+          );
+        else if (detail === "413") setNote("That file is too large (max 10 MB per image).");
         else setNote("Upload failed. Please check file type and try again.");
       }
     } catch {

@@ -8,6 +8,20 @@ export function isServerlessRuntime(): boolean {
   );
 }
 
+function strapiUrlIsRemote(): boolean {
+  const u = (process.env.STRAPI_URL ?? "").toLowerCase();
+  return Boolean(u && !u.includes("localhost") && !u.includes("127.0.0.1"));
+}
+
+/**
+ * Store files on Strapi (Render) when we're serverless OR when the site points at
+ * production Strapi. Netlify often does not set NETLIFY at runtime, so relying on
+ * that alone breaks uploads (local `public/` is not writable on Netlify).
+ */
+export function shouldUploadViaStrapi(): boolean {
+  return isServerlessRuntime() || strapiUrlIsRemote();
+}
+
 /** Saves image on Strapi (Render) disk; returns absolute URL for DB. */
 export async function saveImageViaStrapi(
   file: File,
