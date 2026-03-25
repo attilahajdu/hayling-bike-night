@@ -20,7 +20,7 @@ export async function FacebookFeedSection() {
 
   return (
     <section className="w-full bg-white py-20 dark:bg-zinc-950">
-      <div className="w-full px-4 sm:px-6 lg:px-10">
+      <div className="shell">
         <div className="mb-4 flex items-end justify-between gap-3">
           <h2 className="section-title">Live From Facebook</h2>
           <Link href={pageUrl} target="_blank" className="text-sm text-ink">

@@ -13,28 +13,96 @@ export function CommunityEventSubmitForm() {
     try {
       const form = event.currentTarget;
       const data = new FormData(form);
+      // Use redirect-follow for the main case, but also read Location when available.
       const res = await fetch("/api/events/submit", { method: "POST", body: data, redirect: "manual" });
+
       const loc = res.headers.get("Location") ?? "";
-      const locUrl = loc.startsWith("http") ? new URL(loc) : new URL(loc, window.location.origin);
-      if (res.status === 303 || res.status === 302 || res.status === 307) {
-        if (locUrl.searchParams.get("submitted") === "1") {
-          setStatus("ok");
-          setNote("Thanks — an organiser will review your event before it appears on the site.");
-          form.reset();
-          return;
+      const locUrl = loc
+        ? (() => {
+            try {
+              return loc.startsWith("http") ? new URL(loc) : new URL(loc, window.location.origin);
+            } catch {
+              return null;
+            }
+          })()
+        : null;
+
+      // When `redirect: "manual"` is used, browsers may not return a useful `res.url` for the redirected target.
+      // So we primarily rely on `Location`, and only fall back to `res.url` if Location is missing.
+      const fallbackUrl = (() => {
+        try {
+          return res.url ? new URL(res.url) : null;
+        } catch {
+          return null;
         }
-        if (locUrl.searchParams.get("error")) {
-          setStatus("error");
-          const err = locUrl.searchParams.get("error");
-          if (err === "missing") setNote("Please fill in every field and accept the policy.");
-          else if (err === "date") setNote("Check the date and time.");
-          else if (err === "network") setNote("Could not reach the server. Try again shortly.");
-          else if (err === "strapi") setNote("Could not save your event. Please try again or contact the team.");
-          else setNote("Something went wrong.");
-          return;
-        }
+      })();
+
+      const effectiveUrl = locUrl ?? fallbackUrl;
+      const submitted = effectiveUrl?.searchParams.get("submitted");
+      const err = effectiveUrl?.searchParams.get("error");
+
+      if (submitted === "1") {
+        setStatus("ok");
+        setNote("Thanks — an organiser will review your event before it appears on the site.");
+        form.reset();
+        return;
       }
-      if (!res.ok && res.status !== 303) throw new Error("Submit failed");
+
+      if (err) {
+        setStatus("error");
+        if (err === "missing") setNote("Please fill in every field and accept the policy.");
+        else if (err === "date") setNote("Check the date and time.");
+        else if (err === "network") setNote("Could not reach the server. Try again shortly.");
+        else if (err === "strapi") setNote("Could not save your event. Please try again or contact the team.");
+        else setNote("Something went wrong.");
+        return;
+      }
+
+      // Unhappy path: e.g. 500 JSON when STRAPI_API_TOKEN is missing/misconfigured.
+      if (!res.ok) {
+        let bodyText = "";
+        try {
+          bodyText = await res.text();
+        } catch {
+          /* ignore */
+        }
+
+        let serverMsg = bodyText;
+        try {
+          const j = JSON.parse(bodyText);
+          serverMsg = j?.error ?? j?.message ?? bodyText;
+        } catch {
+          /* not JSON */
+        }
+
+        console.error("[events/submit] failed", res.status, serverMsg);
+
+        if (res.status === 500 && String(serverMsg).toLowerCase().includes("misconfigured")) {
+          setStatus("error");
+          setNote(
+            "Server misconfigured: STRAPI_API_TOKEN is missing on Netlify. Add `STRAPI_API_TOKEN` under Site settings → Environment variables, then redeploy.",
+          );
+          return;
+        }
+
+        setStatus("error");
+        setNote("Submit failed. Please try again.");
+        return;
+      }
+
+      // Redirect received but we couldn't read redirect params (Location missing).
+      // This is usually still a successful submit on this codepath, so don't show a misleading "failed".
+      if ([302, 303, 307].includes(res.status)) {
+        setStatus("ok");
+        setNote("Submitted. If you don't see it yet, refresh the page (moderation may take a moment).");
+        return;
+      }
+
+      // If we get here, the request likely succeeded but we couldn't parse the redirect params.
+      // This should be rare; we surface something actionable instead of a generic "failed".
+      console.warn("[events/submit] redirect params not detected", { resStatus: res.status, location: loc, resUrl: res.url });
+      setStatus("ok");
+      setNote("Submitted. If you don’t see it, refresh the page (moderation may take a moment).");
     } catch {
       setStatus("error");
       setNote("Submit failed. Please try again.");

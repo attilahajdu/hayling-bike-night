@@ -13,7 +13,7 @@ export default async function PetitionDetailPage({ params }: { params: Promise<{
   const p = row.attributes;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12">
+    <div className="mx-auto max-w-3xl shell-px py-12">
       <Link href="/petitions" className="text-sm text-zinc-500 no-underline hover:text-accent dark:text-zinc-400">
         ← Petitions
       </Link>

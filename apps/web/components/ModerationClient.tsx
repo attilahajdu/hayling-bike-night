@@ -26,6 +26,7 @@ export function ModerationClient({
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<number[]>([]);
 
   async function actPhoto(id: number, status: "published" | "rejected") {
@@ -68,10 +69,15 @@ export function ModerationClient({
 
   async function actEvent(id: number, action: "publish" | "delete") {
     setBusy(`e-${id}`);
+    setErrorMsg(null);
     try {
       if (action === "publish") await publishCommunityEvent(id);
       else await deleteCommunityEventSubmission(id);
       router.refresh();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error("[moderation] actEvent failed", { id, action, msg });
+      setErrorMsg(msg === "Unauthorized" ? "Not authorised to moderate events." : msg);
     } finally {
       setBusy(null);
     }
@@ -95,6 +101,11 @@ export function ModerationClient({
 
   return (
     <div className="mt-8 space-y-10">
+      {errorMsg ? (
+        <div className="rounded-lg border border-red-700 bg-red-950/30 px-4 py-3 text-sm text-red-200">
+          {errorMsg}
+        </div>
+      ) : null}
       <section>
         <h2 className="font-display font-bold text-2xl text-zinc-200">Community event submissions</h2>
         {events.length === 0 ? (

@@ -4,7 +4,7 @@ import { getFacebookPageUrl } from "@/lib/social";
 export function SiteFooter() {
   const facebookUrl = getFacebookPageUrl();
   return (
-    <footer className="mt-16 bg-zinc-950 py-12 text-zinc-300 dark:bg-black dark:text-zinc-400">
+    <footer className="mt-16 bg-zinc-950 pt-12 pb-[calc(3rem+env(safe-area-inset-bottom,0px))] text-zinc-300 dark:bg-black dark:text-zinc-400">
       <div className="shell">
         <div>
           <p className="font-display font-bold text-3xl uppercase tracking-[0.14em] text-zinc-300">Hayling Bike Night</p>

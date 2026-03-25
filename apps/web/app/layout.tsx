@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Barlow_Condensed, Inter } from "next/font/google";
 import "./globals.css";
@@ -22,6 +22,12 @@ export const metadata: Metadata = {
   },
   description:
     "Fully marshalled motorcycle meet — Thursdays 5pm–late, April–September at John’s Café, Hayling Island (PO11 0AS).",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

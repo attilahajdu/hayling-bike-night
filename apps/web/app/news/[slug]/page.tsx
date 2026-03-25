@@ -12,7 +12,7 @@ export default async function NewsArticlePage({ params }: { params: Promise<{ sl
   const n = row.attributes;
 
   return (
-    <article className="mx-auto max-w-3xl px-4 py-12">
+    <article className="mx-auto max-w-3xl shell-px py-12">
       <Link href="/news" className="text-sm text-zinc-500 no-underline hover:text-accent dark:text-zinc-400">
         ← News
       </Link>

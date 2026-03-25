@@ -1,6 +1,6 @@
 export default function LegalPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12">
+    <div className="mx-auto max-w-3xl shell-px py-12">
       <h1 className="font-display text-4xl font-bold uppercase text-ink">Privacy and upload terms</h1>
       <div className="mt-6 space-y-4 text-zinc-600 dark:text-zinc-400">
         <p>Uploads must be your own content or shared with permission. Do not upload illegal, abusive, or doxxing material.</p>

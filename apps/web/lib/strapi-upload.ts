@@ -1,35 +1,40 @@
-const STRAPI = process.env.STRAPI_URL?.replace(/\/$/, "") ?? "http://localhost:1337";
-/** Trim: Netlify UI sometimes adds accidental whitespace. */
+import { getStrapiBaseUrl, strapiOriginIsRemote } from "./strapi-env";
+import { isSupabaseStorageConfigured, uploadToSupabaseStorage } from "./supabase-storage";
+
+const STRAPI = getStrapiBaseUrl();
 const TOKEN = process.env.STRAPI_API_TOKEN?.trim();
-/** Optional shared secret (same on Netlify + Strapi/Render) — bypasses API token hash issues. */
 const COMMUNITY_UPLOAD_SECRET = process.env.COMMUNITY_UPLOAD_SECRET?.trim();
 
-/** Netlify/Vercel/AWS Lambda cannot persist writes to `public/uploads`. */
 export function isServerlessRuntime(): boolean {
   return Boolean(
     process.env.NETLIFY || process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME,
   );
 }
 
-function strapiUrlIsRemote(): boolean {
-  const u = (process.env.STRAPI_URL ?? "").toLowerCase();
-  return Boolean(u && !u.includes("localhost") && !u.includes("127.0.0.1"));
+/**
+ * True when images should NOT be saved to local `public/uploads`.
+ * Supabase Storage is preferred when configured; Strapi disk is the legacy fallback.
+ */
+export function shouldUploadViaStrapi(): boolean {
+  if (isSupabaseStorageConfigured()) return true;
+  return isServerlessRuntime() || strapiOriginIsRemote();
 }
 
 /**
- * Store files on Strapi (Render) when we're serverless OR when the site points at
- * production Strapi. Netlify often does not set NETLIFY at runtime, so relying on
- * that alone breaks uploads (local `public/` is not writable on Netlify).
+ * Saves image via the best available backend:
+ *  1. Supabase Storage (if configured) — persistent, CDN-backed, survives Render restarts.
+ *  2. Strapi disk on Render (legacy fallback) — ephemeral, files lost on restart.
+ *
+ * Returns the public URL to store in the Strapi photo record.
  */
-export function shouldUploadViaStrapi(): boolean {
-  return isServerlessRuntime() || strapiUrlIsRemote();
-}
-
-/** Saves image on Strapi (Render) disk; returns absolute URL for DB. */
 export async function saveImageViaStrapi(
   file: File,
   folder: "community" | "pro",
 ): Promise<string> {
+  if (isSupabaseStorageConfigured()) {
+    return uploadToSupabaseStorage(file, folder);
+  }
+
   const form = new FormData();
   form.append("files", file);
   const q = folder === "pro" ? "?folder=pro" : "";
@@ -49,5 +54,5 @@ export async function saveImageViaStrapi(
   const json = (await res.json()) as { path?: string };
   const rel = json.path ?? "";
   if (!rel.startsWith("/")) throw new Error("strapi-upload-invalid-path");
-  return `${STRAPI}${rel}`;
+  return rel;
 }

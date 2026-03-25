@@ -72,7 +72,9 @@ export async function POST(req: Request) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${TOKEN}`,
       },
-      body: JSON.stringify({ data: { ...basePayload, note: noteBlocks } }),
+      // Keep community submissions in Strapi draft state until an organiser approves.
+      // Moderation queue uses `publicationState=preview` (drafts), while the public events page uses `publicationState=live`.
+      body: JSON.stringify({ data: { ...basePayload, note: noteBlocks, publishedAt: null } }),
     });
     if (!createRes.ok && createRes.status === 400) {
       createRes = await fetch(`${STRAPI}/api/events`, {
@@ -81,7 +83,7 @@ export async function POST(req: Request) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${TOKEN}`,
         },
-        body: JSON.stringify({ data: { ...basePayload, note: details.slice(0, 8000) } }),
+        body: JSON.stringify({ data: { ...basePayload, note: details.slice(0, 8000), publishedAt: null } }),
       });
     }
   } catch {
@@ -92,6 +94,25 @@ export async function POST(req: Request) {
     const errText = await createRes.text().catch(() => "");
     console.error("[events/submit] Strapi error", createRes.status, errText.slice(0, 500));
     return redirectSameOrigin(req, "/events?error=strapi");
+  }
+
+  // Force newly created community events to stay as drafts.
+  // Some Strapi setups may treat `publishedAt: null` differently during create; doing a post-create PUT removes ambiguity.
+  try {
+    const createdJson = await createRes.json().catch(() => null);
+    const createdId: number | null = createdJson?.data?.id ?? createdJson?.id ?? null;
+    if (createdId) {
+      await fetch(`${STRAPI}/api/events/${createdId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${TOKEN}`,
+        },
+        body: JSON.stringify({ data: { publishedAt: null } }),
+      });
+    }
+  } catch {
+    // If we can't force draft mode, we still created the event; moderation will handle it.
   }
 
   return redirectSameOrigin(req, "/events?submitted=1");

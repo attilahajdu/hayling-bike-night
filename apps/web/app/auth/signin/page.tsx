@@ -9,7 +9,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
 
   if (session?.user) {
     return (
-      <div className="mx-auto max-w-md px-4 py-16 text-center">
+      <div className="mx-auto max-w-md shell-px py-16 text-center">
         <p className="text-zinc-600 dark:text-zinc-400">Signed in as {session.user.email}</p>
         <Link href={sp.callbackUrl ?? "/"} className="mt-6 inline-block text-accent">
           Continue →
@@ -22,7 +22,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
     "w-full rounded-md border border-zinc-400 bg-elevated py-3 font-display text-xl font-bold uppercase text-ink transition hover:border-accent dark:border-zinc-600 dark:text-zinc-100";
 
   return (
-    <div className="mx-auto max-w-md px-4 py-16">
+    <div className="mx-auto max-w-md shell-px py-16">
       <h1 className="font-display text-4xl font-bold uppercase text-ink">Sign in</h1>
       <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
         {hasGoogle || hasFacebook

@@ -8,7 +8,7 @@ export default async function NewsPage() {
   const list = res?.data ?? [];
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12">
+    <div className="shell py-12">
       <h1 className="font-display text-4xl font-bold uppercase text-ink">News</h1>
       <ul className="mt-8 space-y-4">
         {list.length === 0 ? (

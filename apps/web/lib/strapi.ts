@@ -1,26 +1,65 @@
-const STRAPI = process.env.STRAPI_URL?.replace(/\/$/, "") ?? "http://localhost:1337";
+import { getStrapiBaseUrl, strapiOriginIsRemote } from "./strapi-env";
 
-/** True when STRAPI_URL points at a deployed host (not local). Used for media URL resolution. */
-function strapiHostIsRemote(): boolean {
-  const u = (process.env.STRAPI_URL ?? "").toLowerCase();
-  return Boolean(u && !u.includes("localhost") && !u.includes("127.0.0.1"));
+const STRAPI = getStrapiBaseUrl();
+
+function strapiPublicOrigin(): string {
+  const b = getStrapiBaseUrl();
+  try {
+    return new URL(b.startsWith("http") ? b : "http://localhost:1337").origin;
+  } catch {
+    return "http://localhost:1337";
+  }
 }
 
 /**
- * Strapi often stores file paths as `/uploads/...`. The browser resolves those against the **website** origin,
- * so on Netlify the image requests hit the wrong host and break. Prefix with STRAPI when media lives on Strapi.
- * Local `public/uploads` (same origin) stays relative when Strapi is localhost.
+ * Same-origin path proxied by next.config rewrites → Strapi `/uploads/*`.
+ * Avoids broken relative `/uploads` on Netlify and reduces mixed-content issues.
+ */
+function uploadsPathToProxy(pathname: string): string | null {
+  if (!pathname.startsWith("/uploads/")) return null;
+  return `/strapi-uploads${pathname.slice("/uploads".length)}`;
+}
+
+/**
+ * Strapi stores community files under `/uploads/...` on the CMS host. Relative paths
+ * resolve against the **site** origin (Netlify) and 404. Remote absolute URLs can
+ * hit mixed content or wrong hosts. When Strapi is remote we rewrite to `/strapi-uploads/...`.
  */
 export function strapiMediaUrl(url: string | null | undefined): string | null {
   if (url == null) return null;
-  const u = String(url).trim();
-  if (!u) return null;
-  if (/^https?:\/\//i.test(u)) return u;
-  if (u.startsWith("//")) return `https:${u}`;
-  const path = u.startsWith("/") ? u : `/${u}`;
+  const raw = String(url).trim();
+  if (!raw) return null;
+
+  const remote = strapiOriginIsRemote();
+
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      const parsed = new URL(raw);
+      // Supabase Storage URLs are already public CDN links — never rewrite.
+      if (parsed.hostname.includes("supabase")) return raw;
+      const path = parsed.pathname;
+      if (!path.startsWith("/uploads/")) return raw;
+      if (remote) return uploadsPathToProxy(path) ?? raw;
+      return `${strapiPublicOrigin()}${path}${parsed.search}`;
+    } catch {
+      return raw;
+    }
+  }
+
+  if (raw.startsWith("//")) {
+    try {
+      const path = new URL(`https:${raw}`).pathname;
+      if (path.startsWith("/uploads/") && remote) return uploadsPathToProxy(path) ?? `https:${raw}`;
+      return `https:${raw}`;
+    } catch {
+      return `https:${raw}`;
+    }
+  }
+
+  const path = raw.startsWith("/") ? raw : `/${raw}`;
   if (!path.startsWith("/uploads/")) return path;
-  if (strapiHostIsRemote()) return `${STRAPI}${path}`;
-  return path;
+  if (remote) return uploadsPathToProxy(path) ?? path;
+  return `${strapiPublicOrigin()}${path}`;
 }
 
 function normalizePhotoAttrs(attrs: PhotoAttrs): PhotoAttrs {
@@ -245,7 +284,9 @@ export async function getEventBySlug(slug: string) {
 /** Draft community submissions (Strapi draft / preview), for owner moderation only. */
 export async function getPendingCommunityEvents() {
   return strapiFetch<ListResponse<EventAttrs>>(
-    `/events?filters[eventKind][$eq]=community&publicationState=preview&sort=createdAt:desc&pagination[pageSize]=50`,
+    // "pending" for events is effectively "draft" => publishedAt is null.
+    // `publicationState=preview` can include already-live items, so we must filter precisely.
+    `/events?filters[eventKind][$eq]=community&filters[publishedAt][$null]=true&publicationState=preview&sort=createdAt:desc&pagination[pageSize]=50`,
     { cache: "no-store" },
   );
 }

@@ -1,8 +1,17 @@
 import type { NextConfig } from "next";
+import { getStrapiOriginForRewrites } from "./lib/strapi-env";
 
-const strapiHost = process.env.STRAPI_URL
-  ? new URL(process.env.STRAPI_URL).hostname
-  : undefined;
+function strapiHostnameForNextImage(): string | undefined {
+  const origin = getStrapiOriginForRewrites();
+  if (!origin) return undefined;
+  try {
+    return new URL(origin).hostname;
+  } catch {
+    return undefined;
+  }
+}
+
+const strapiHost = strapiHostnameForNextImage();
 
 const nextConfig: NextConfig = {
   async redirects() {
@@ -13,6 +22,8 @@ const nextConfig: NextConfig = {
       { source: "/petitions/:path*", destination: "/", permanent: false },
     ];
   },
+  // Strapi upload proxy: use `app/strapi-uploads/[[...path]]/route.ts` (runtime fetch).
+  // External `rewrites()` to Render are unreliable on Netlify for binary `/uploads/*`.
   images: {
     remotePatterns: [
       { protocol: "http", hostname: "localhost", port: "1337", pathname: "/uploads/**" },

@@ -1,6 +1,6 @@
 export default function FaqPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12">
+    <div className="mx-auto max-w-3xl shell-px py-12">
       <h1 className="font-display text-4xl font-bold uppercase text-ink">FAQ</h1>
       <div className="mt-8 space-y-6 text-zinc-600 dark:text-zinc-400">
         <section>
