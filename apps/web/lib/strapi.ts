@@ -79,6 +79,9 @@ export type PhotoAttrs = {
   photographer?: { data: { id: number; attributes: PhotographerAttrs } | null };
   galleryEntry?: { data: { id: number; attributes: GalleryEntryAttrs } | null };
   submittedBy?: string | null;
+  /** Strapi system fields (when returned by API) */
+  createdAt?: string | null;
+  updatedAt?: string | null;
 };
 
 type ListResponse<T> = {

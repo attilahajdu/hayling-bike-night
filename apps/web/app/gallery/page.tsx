@@ -42,11 +42,12 @@ function albumWeekLine(attrs: OfficialAlbumAttrs, thisWeekFallback: string): str
   return formatted ? `Gallery week · ${formatted}` : thisWeekFallback;
 }
 
-export default async function GalleryHubPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+export default async function GalleryHubPage({ searchParams }: { searchParams: Promise<{ q?: string; sort?: string }> }) {
   const sp = await searchParams;
   const q = sp.q ?? "";
   const qTrim = q.trim();
   const searchMode = qTrim.length > 0;
+  const sort = sp.sort === "likes" ? "likes" : "latest";
 
   const allEntriesRes = await getGalleryEntries();
   const allEntries = allEntriesRes?.data ?? [];
@@ -161,6 +162,15 @@ export default async function GalleryHubPage({ searchParams }: { searchParams: P
 
   const proAlbumsPool = searchMode ? official : official.slice(0, 4);
   const thisWeekLine = `This week · ${cardDateLabel}`;
+
+  const sortParams = new URLSearchParams();
+  if (qTrim) sortParams.set("q", qTrim);
+  const sortHref = (next: "latest" | "likes") => {
+    const p = new URLSearchParams(sortParams);
+    p.set("sort", next);
+    const qs = p.toString();
+    return qs ? `/gallery?${qs}` : "/gallery";
+  };
 
   return (
     <div className={searchMode ? "shell pb-8 pt-4 sm:pb-10 sm:pt-5" : "shell py-8 sm:py-10"}>
@@ -353,8 +363,34 @@ export default async function GalleryHubPage({ searchParams }: { searchParams: P
           </div>
         </div>
         <div className="mt-3">
+          <div className="mb-4 flex flex-wrap items-center gap-2 text-sm">
+            <span className="text-zinc-500 dark:text-zinc-400">Order:</span>
+            <Link
+              href={sortHref("latest")}
+              className={
+                sort === "latest"
+                  ? "font-semibold text-ink no-underline"
+                  : "font-medium text-accent no-underline hover:underline"
+              }
+            >
+              Latest uploads
+            </Link>
+            <span className="text-zinc-300 dark:text-zinc-600" aria-hidden>
+              |
+            </span>
+            <Link
+              href={sortHref("likes")}
+              className={
+                sort === "likes"
+                  ? "font-semibold text-ink no-underline"
+                  : "font-medium text-accent no-underline hover:underline"
+              }
+            >
+              Most liked
+            </Link>
+          </div>
           {displayCommunity.length ? (
-            <GalleryGrid items={displayCommunity} />
+            <GalleryGrid items={displayCommunity} sortMode={sort} />
           ) : searchMode ? (
             <p className="text-sm text-zinc-600 dark:text-zinc-300">No community photos match that search.</p>
           ) : (

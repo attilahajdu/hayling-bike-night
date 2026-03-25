@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { FacebookFeedSection } from "@/components/FacebookFeedSection";
 import { Hero } from "@/components/Hero";
+import { HomeCommunityPreview } from "@/components/HomeCommunityPreview";
+import { LandingShowcaseStrip, type ShowcaseItem } from "@/components/LandingShowcaseStrip";
 import { getFacebookMedia } from "@/lib/facebook";
 import type { EventAttrs } from "@/lib/strapi";
 import {
@@ -12,7 +14,6 @@ import {
   getPhotos,
   getPublishedCommunityPhotoTotal,
 } from "@/lib/strapi";
-import { getBikeNightWeekIsoRange } from "@/lib/bike-night-week";
 import { getForecastForDate } from "@/lib/weather";
 
 /** Dynamic so community photo totals stay accurate after moderation (not stuck behind ISR). */
@@ -22,90 +23,24 @@ function statNumber(value: number) {
   return new Intl.NumberFormat("en-GB").format(value);
 }
 
-type ShowcaseItem =
-  | { id: string; src: string; source: "facebook"; uploader: string }
-  | {
-      id: string;
-      src: string;
-      source: "community";
-      uploader: string;
-      subjectKeywords: string | null;
-      external: boolean;
-    };
-
-/** Stroke-only pills over imagery (matches gallery grid treatment, tuned for dark photos). */
-function ShowcaseSourceBadge({ item }: { item: ShowcaseItem }) {
-  const shell =
-    "rounded-full border border-white/45 px-2 py-0.5 text-[10px] leading-snug text-white/90 drop-shadow-[0_1px_2px_rgb(0_0_0/0.65)]";
-
-  if (item.source === "facebook") {
-    return (
-      <span className={`${shell} max-w-[min(7rem,calc(100%-1rem))] shrink-0 truncate text-center font-medium uppercase tracking-wide`}>
-        Facebook
-      </span>
-    );
-  }
-
-  if (item.external) {
-    return (
-      <span className={`${shell} max-w-[min(7rem,calc(100%-1rem))] shrink-0 truncate text-center font-medium uppercase tracking-wide`}>
-        Official
-      </span>
-    );
-  }
-
-  const keywordsRaw = (item.subjectKeywords ?? "").trim();
-  const tagsLabel = keywordsRaw.length ? keywordsRaw : "—";
-
-  return (
-    <span
-      className={`${shell} max-w-[min(13rem,calc(100%-1rem))] min-w-0`}
-      title={keywordsRaw.length ? keywordsRaw : undefined}
-    >
-      <span className="block truncate text-left">
-        <span className="font-medium">Tags:</span> <span className="font-normal normal-case">{tagsLabel}</span>
-      </span>
-    </span>
-  );
-}
-
 export default async function HomePage() {
-  const [events, news, petitions, galleryEntries, photos, facebookMedia] = await Promise.all([
+  const [events, news, petitions, galleryEntries, facebookMedia] = await Promise.all([
     getEvents({ upcoming: true }),
     getNewsList(),
     getPetitions(),
     getGalleryEntries(),
-    getPhotos({ pageSize: 12 }),
     getFacebookMedia(12),
   ]);
 
   const latestNews = news?.data?.slice(0, 3) ?? [];
   const latestPetition = petitions?.data?.[0];
   const latestEntry = galleryEntries?.data?.[0] ?? null;
-  const latestPhotos = photos?.data ?? [];
   const facebookShowcase: ShowcaseItem[] = facebookMedia.map((src, idx) => ({
     id: `fb-${idx}`,
     src,
     source: "facebook",
     uploader: "haylingbikenight",
   }));
-  const communityShowcase = latestPhotos
-    .map((ph, idx) => {
-      const src = ph.attributes.thumbnailUrl ?? ph.attributes.imageUrl ?? null;
-      if (!src) return null;
-      const outbound = ph.attributes.purchaseUrl ?? ph.attributes.sourcePageUrl;
-      const external = Boolean(ph.attributes.isExternal || outbound);
-      return {
-        id: `community-${ph.id}-${idx}`,
-        src,
-        source: "community" as const,
-        uploader: ph.attributes.uploaderHandle ?? ph.attributes.submittedBy ?? "community",
-        subjectKeywords: ph.attributes.subjectKeywords ?? null,
-        external,
-      };
-    })
-    .filter((item): item is Extract<ShowcaseItem, { source: "community" }> => item !== null);
-  const mergedShowcase: ShowcaseItem[] = [...facebookShowcase, ...communityShowcase];
   const apiEvents = (events?.data ?? []).slice(0, 8);
   const escortDate = new Date();
   escortDate.setDate(escortDate.getDate() + 12);
@@ -182,30 +117,36 @@ export default async function HomePage() {
 
   const nextStrapiEvent = apiEvents[0];
   const nextUpcomingForecast = nextStrapiEvent ? await getForecastForDate(nextStrapiEvent.attributes.dateStart) : null;
-  const bikeNightWeek = getBikeNightWeekIsoRange();
-  const [officialRes, communityRes, recentOfficialRes, publishedCommunityTotal, publishedCommunityThisWeek] =
+  const sevenDaysAgoIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const [officialRes, recentOfficialRes, publishedCommunityTotal, publishedCommunityLast7Days, communityPhotosRes] =
     await Promise.all([
       latestEntry ? getOfficialAlbums({ galleryEntrySlug: latestEntry.attributes.slug, status: "published" }) : Promise.resolve(null),
-      getPhotos({
-        pageSize: 24,
-        updatedAtGte: bikeNightWeek.gte,
-        updatedAtLt: bikeNightWeek.lt,
-      }),
       getOfficialAlbums({ status: "published" }),
       getPublishedCommunityPhotoTotal(),
-      getPublishedCommunityPhotoTotal({
-        updatedAtGte: bikeNightWeek.gte,
-        updatedAtLt: bikeNightWeek.lt,
-      }),
+      getPublishedCommunityPhotoTotal({ updatedAtGte: sevenDaysAgoIso }),
+      getPhotos({ pageSize: 30, source: "community" }),
     ]);
   const officialForWeek = officialRes?.data ?? [];
   const recentOfficial = recentOfficialRes?.data ?? [];
   const official = officialForWeek.length ? officialForWeek : recentOfficial;
-  const communityForWeek = (communityRes?.data ?? []).filter((p) => p.attributes.isExternal !== true);
-  const recentCommunityRes = await getPhotos({ pageSize: 24 });
-  const recentCommunity = (recentCommunityRes?.data ?? []).filter((p) => p.attributes.isExternal !== true);
-  const displayCommunity = communityForWeek.length ? communityForWeek : recentCommunity;
-  const showingRecentNotThisWeek = communityForWeek.length === 0 && displayCommunity.length > 0;
+  const communityPhotosHome = (communityPhotosRes?.data ?? []).filter((p) => p.attributes.isExternal !== true);
+  const communityShowcase: ShowcaseItem[] = communityPhotosHome
+    .map((ph) => {
+      const src = ph.attributes.thumbnailUrl ?? ph.attributes.imageUrl ?? null;
+      if (!src) return null;
+      const outbound = ph.attributes.purchaseUrl ?? ph.attributes.sourcePageUrl;
+      const external = Boolean(ph.attributes.isExternal || outbound);
+      return {
+        id: `community-${ph.id}`,
+        photoId: ph.id,
+        src,
+        source: "community" as const,
+        uploader: ph.attributes.uploaderHandle ?? ph.attributes.submittedBy ?? "community",
+        subjectKeywords: ph.attributes.subjectKeywords ?? null,
+        external,
+      };
+    })
+    .filter((item): item is Extract<ShowcaseItem, { source: "community" }> => item !== null);
   const starterPros = [
     {
       id: "home-pro-1",
@@ -259,7 +200,7 @@ export default async function HomePage() {
         <div className="shell grid grid-cols-2 gap-5 sm:grid-cols-4">
           <div><p className="font-display font-bold text-5xl uppercase text-zinc-300">23</p><p className="text-sm text-zinc-500">This season meets</p></div>
           <div><p className="font-display font-bold text-5xl uppercase text-zinc-300">500</p><p className="text-sm text-zinc-500">Expected riders weekly</p></div>
-          <div><p className="font-display font-bold text-5xl uppercase text-zinc-300">{statNumber(publishedCommunityTotal)}</p><p className="text-sm text-zinc-500">Community photos (published)</p></div>
+          <div><p className="font-display font-bold text-5xl uppercase text-zinc-300">{statNumber(publishedCommunityTotal)}</p><p className="text-sm text-zinc-500">Total community photos published</p></div>
           <div><p className="font-display font-bold text-5xl uppercase text-zinc-300">Apr-Sep</p><p className="text-sm text-zinc-500">Every Thursday afternoon</p></div>
         </div>
       </section>
@@ -312,8 +253,10 @@ export default async function HomePage() {
             <div className="mb-2 flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h3 className="font-display font-bold text-3xl uppercase text-ink">Community Submitted Photos</h3>
-                <p className="mt-1 text-sm text-zinc-600">
-                  This week = Thursday 00:00 → next Thursday (UK time). Latest uploads from riders — same wall, your angle.
+                <p className="mt-1 max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                  <span className="font-semibold text-ink dark:text-zinc-200">{statNumber(publishedCommunityTotal)}</span> community
+                  photos published in the gallery in total. In the past 7 days we received{" "}
+                  <span className="font-semibold text-ink dark:text-zinc-200">{statNumber(publishedCommunityLast7Days)}</span>.
                 </p>
               </div>
               <Link
@@ -323,34 +266,32 @@ export default async function HomePage() {
                 View all in gallery →
               </Link>
             </div>
-            <div className="mt-6 grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-              {(displayCommunity.length
-                ? displayCommunity.slice(0, 12).map((ph, idx) => ({
-                    id: `week-community-${ph.id}-${idx}`,
-                    src: ph.attributes.thumbnailUrl ?? ph.attributes.imageUrl ?? "/images/hayling-beach.jpg",
-                    label: communityForWeek.length ? "This week (Thu–Thu)" : "Recent upload (outside this week)",
-                  }))
-                : communityFallback
-              ).map((item) => (
-                <article
-                  key={item.id}
-                  className="overflow-hidden rounded-xl border border-stone/50 bg-white shadow-sm ring-1 ring-black/[0.03] dark:border-zinc-700 dark:bg-[rgb(var(--color-card))] dark:ring-0"
-                >
-                  <div className="aspect-square bg-zinc-200">
-                    <img src={item.src} alt={item.label} className="h-full w-full object-cover" loading="lazy" />
-                  </div>
-                </article>
-              ))}
-            </div>
+            {communityPhotosHome.length ? (
+              <HomeCommunityPreview
+                items={communityPhotosHome.slice(0, 12).map((ph) => ({
+                  id: ph.id,
+                  src: ph.attributes.thumbnailUrl ?? ph.attributes.imageUrl ?? "/images/hayling-beach.jpg",
+                  alt: `Community photo by ${ph.attributes.uploaderHandle ?? ph.attributes.submittedBy ?? "rider"}`,
+                }))}
+              />
+            ) : (
+              <div className="mt-6 grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+                {communityFallback.map((item) => (
+                  <article
+                    key={item.id}
+                    className="overflow-hidden rounded-xl border border-stone/50 bg-white shadow-sm ring-1 ring-black/[0.03] dark:border-zinc-700 dark:bg-[rgb(var(--color-card))] dark:ring-0"
+                  >
+                    <div className="aspect-square bg-zinc-200">
+                      <img src={item.src} alt={item.label} className="h-full w-full object-cover" loading="lazy" />
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
             <div className="mt-8 flex flex-col gap-2">
               <Link href="/gallery#community-photos" className="btn-primary w-fit">
-                This week: {statNumber(publishedCommunityThisWeek)} community photos →
+                View {statNumber(publishedCommunityTotal)} community photos →
               </Link>
-              {showingRecentNotThisWeek ? (
-                <p className="text-sm text-zinc-500">
-                  Nothing published in the current Thursday week yet — showing recent photos instead. Count above is for this week only.
-                </p>
-              ) : null}
             </div>
           </div>
         </section>
@@ -502,16 +443,7 @@ export default async function HomePage() {
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(255,255,255,0.08),transparent_55%)]" aria-hidden />
           <div className="pointer-events-none absolute inset-0 opacity-[0.04] [background-image:linear-gradient(135deg,#fff_0.5px,transparent_0.5px),linear-gradient(45deg,#fff_0.5px,transparent_0.5px)] [background-size:24px_24px]" aria-hidden />
           <div className="shell relative">
-          <div className="grid gap-5 md:grid-cols-4">
-            {mergedShowcase.slice(0, 4).map((item) => (
-              <div key={item.id} className="relative aspect-[4/3] overflow-hidden rounded-lg bg-zinc-800">
-                <img src={item.src} alt="" className="h-full w-full object-cover" loading="lazy" referrerPolicy="no-referrer" />
-                <div className="absolute left-2 top-2 max-w-[calc(100%-1rem)]">
-                  <ShowcaseSourceBadge item={item} />
-                </div>
-              </div>
-            ))}
-          </div>
+          <LandingShowcaseStrip facebook={facebookShowcase} community={communityShowcase} />
           <p className="mt-8 text-center font-display font-bold text-4xl uppercase text-zinc-300 sm:text-5xl">“Just bikes, people, and a car park on the island.”</p>
           <p className="mt-3 text-center text-sm uppercase tracking-[0.15em] text-zinc-500">Free to attend. Every Thursday. April to September.</p>
           </div>

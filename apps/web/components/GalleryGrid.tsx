@@ -12,23 +12,45 @@ function thumbSrc(p: PhotoAttrs): string | null {
   return p.thumbnailUrl ?? p.imageUrl ?? null;
 }
 
-export function GalleryGrid({ items }: { items: Item[] }) {
+function createdMs(attrs: PhotoAttrs): number {
+  const raw = attrs.createdAt ?? attrs.updatedAt;
+  if (!raw) return 0;
+  const t = new Date(raw).getTime();
+  return Number.isFinite(t) ? t : 0;
+}
+
+export function GalleryGrid({
+  items,
+  sortMode = "likes",
+}: {
+  items: Item[];
+  /** `likes` = localStorage counts (per browser). `latest` = Strapi createdAt. */
+  sortMode?: "likes" | "latest";
+}) {
   const [activePhotoId, setActivePhotoId] = useState<number | null>(null);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [likedIds, setLikedIds] = useState<number[]>([]);
   const [likeCounts, setLikeCounts] = useState<Record<number, number>>({});
   const [copied, setCopied] = useState(false);
 
-  const sortedItems = useMemo(
-    () =>
-      [...items].sort((a, b) => {
-        const aLikes = likeCounts[a.id] ?? 0;
-        const bLikes = likeCounts[b.id] ?? 0;
-        if (bLikes !== aLikes) return bLikes - aLikes;
+  const sortedItems = useMemo(() => {
+    const copy = [...items];
+    if (sortMode === "latest") {
+      copy.sort((a, b) => {
+        const tb = createdMs(b.attributes);
+        const ta = createdMs(a.attributes);
+        if (tb !== ta) return tb - ta;
         return b.id - a.id;
-      }),
-    [items, likeCounts],
-  );
+      });
+      return copy;
+    }
+    return copy.sort((a, b) => {
+      const aLikes = likeCounts[a.id] ?? 0;
+      const bLikes = likeCounts[b.id] ?? 0;
+      if (bLikes !== aLikes) return bLikes - aLikes;
+      return b.id - a.id;
+    });
+  }, [items, likeCounts, sortMode]);
   const activeIndex = activePhotoId === null ? null : sortedItems.findIndex((it) => it.id === activePhotoId);
   const active = activeIndex === null || activeIndex < 0 ? null : sortedItems[activeIndex];
   const activeId = active?.id ?? null;
