@@ -367,23 +367,24 @@ export default async function GalleryHubPage({ searchParams }: { searchParams: P
             <span className="text-zinc-500 dark:text-zinc-400">Order:</span>
             <Link
               href={sortHref("latest")}
+              scroll={false}
+              aria-current={sort === "latest" ? "page" : undefined}
               className={
                 sort === "latest"
-                  ? "font-semibold text-ink no-underline"
-                  : "font-medium text-accent no-underline hover:underline"
+                  ? "inline-flex items-center rounded-full bg-accent px-4 py-2 font-semibold text-[rgb(var(--color-on-accent))] no-underline shadow-sm hover:bg-accent hover:text-[rgb(var(--color-on-accent))] hover:no-underline"
+                  : "inline-flex items-center rounded-full border border-zinc-300 bg-white px-4 py-2 font-medium text-zinc-700 no-underline hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-700 hover:no-underline dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
               }
             >
               Latest uploads
             </Link>
-            <span className="text-zinc-300 dark:text-zinc-600" aria-hidden>
-              |
-            </span>
             <Link
               href={sortHref("likes")}
+              scroll={false}
+              aria-current={sort === "likes" ? "page" : undefined}
               className={
                 sort === "likes"
-                  ? "font-semibold text-ink no-underline"
-                  : "font-medium text-accent no-underline hover:underline"
+                  ? "inline-flex items-center rounded-full bg-accent px-4 py-2 font-semibold text-[rgb(var(--color-on-accent))] no-underline shadow-sm hover:bg-accent hover:text-[rgb(var(--color-on-accent))] hover:no-underline"
+                  : "inline-flex items-center rounded-full border border-zinc-300 bg-white px-4 py-2 font-medium text-zinc-700 no-underline hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-700 hover:no-underline dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
               }
             >
               Most liked

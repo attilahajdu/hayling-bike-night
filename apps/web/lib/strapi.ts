@@ -1,5 +1,8 @@
 const STRAPI = process.env.STRAPI_URL?.replace(/\/$/, "") ?? "http://localhost:1337";
 
+/** Avoid flooding the dev console when Strapi is stopped (many parallel fetches on HomePage). */
+let strapiNetworkWarned = false;
+
 export type EventAttrs = {
   title: string;
   slug: string;
@@ -121,8 +124,13 @@ async function strapiFetch<T>(path: string, init?: RequestInit & { next?: { reva
       return null;
     }
     return (await res.json()) as T;
-  } catch (e) {
-    console.warn("Strapi unreachable", e);
+  } catch {
+    if (!strapiNetworkWarned) {
+      strapiNetworkWarned = true;
+      console.warn(
+        `[strapi] Cannot reach ${STRAPI} (network error). For local dev: run Strapi on :1337 — e.g. \`bash scripts/start-local.sh\` from the repo root, or \`npm run start --workspace cms\`.`,
+      );
+    }
     return null;
   }
 }

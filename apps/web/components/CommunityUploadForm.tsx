@@ -5,11 +5,13 @@ import { useState } from "react";
 export function CommunityUploadForm() {
   const [status, setStatus] = useState<"idle" | "submitting" | "ok" | "error">("idle");
   const [note, setNote] = useState("");
+  const [queuedOnly, setQueuedOnly] = useState(false);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus("submitting");
     setNote("");
+    setQueuedOnly(false);
 
     try {
       const form = event.currentTarget;
@@ -25,6 +27,7 @@ export function CommunityUploadForm() {
       if (ok) {
         setStatus("ok");
         if (queuedCount > 0 && savedCount === 0) {
+          setQueuedOnly(true);
           setNote(`${queuedCount} image(s) queued locally because Strapi write permission is currently restricted.`);
         } else if (queuedCount > 0) {
           setNote(`${savedCount} image(s) sent for moderation. ${queuedCount} image(s) queued locally.`);
@@ -95,7 +98,7 @@ export function CommunityUploadForm() {
 
       {status === "ok" ? (
         <p className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800 dark:border-green-800 dark:bg-green-950/40 dark:text-green-200">
-          Submission received. {note}
+          {queuedOnly ? "Saved locally only (not in moderation yet)." : "Submission received."} {note}
         </p>
       ) : null}
       {status === "error" ? (

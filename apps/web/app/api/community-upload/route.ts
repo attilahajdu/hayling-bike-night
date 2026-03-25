@@ -58,15 +58,19 @@ export async function POST(req: Request) {
 
   let galleryEntryId: number | null = null;
   let eventId: number | null = null;
-  const geRes = await fetch(`${STRAPI}/api/gallery-entries?sort=galleryLiveAt:desc&pagination[pageSize]=1&populate=event`, {
-    headers: { Authorization: `Bearer ${TOKEN}` },
-    cache: "no-store",
-  });
-  if (geRes.ok) {
-    const geJson = await geRes.json();
-    const ge = geJson?.data?.[0];
-    galleryEntryId = ge?.id ?? null;
-    eventId = ge?.attributes?.event?.data?.id ?? null;
+  try {
+    const geRes = await fetch(`${STRAPI}/api/gallery-entries?sort=galleryLiveAt:desc&pagination[pageSize]=1&populate=event`, {
+      headers: { Authorization: `Bearer ${TOKEN}` },
+      cache: "no-store",
+    });
+    if (geRes.ok) {
+      const geJson = await geRes.json();
+      const ge = geJson?.data?.[0];
+      galleryEntryId = ge?.id ?? null;
+      eventId = ge?.attributes?.event?.data?.id ?? null;
+    }
+  } catch {
+    /* Strapi down — continue without gallery/event link */
   }
 
   const uploaderHandle = safe(form.get("uploaderHandle")) || null;
@@ -90,25 +94,41 @@ export async function POST(req: Request) {
       continue;
     }
 
-    const createRes = await fetch(`${STRAPI}/api/photos`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${TOKEN}` },
-      body: JSON.stringify({
-        data: {
-          title: uploaderHandle ? `Community upload by ${uploaderHandle}` : "Community upload",
-          imageUrl,
-          thumbnailUrl: imageUrl,
-          status: "pending",
-          isExternal: false,
-          uploaderHandle,
-          submittedBy: uploaderHandle || "Community",
-          subjectKeywords,
-          consentConfirmed: true,
-          galleryEntry: galleryEntryId,
-          event: eventId,
-        },
-      }),
-    });
+    let createRes: Response;
+    try {
+      createRes = await fetch(`${STRAPI}/api/photos`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${TOKEN}` },
+        body: JSON.stringify({
+          data: {
+            title: uploaderHandle ? `Community upload by ${uploaderHandle}` : "Community upload",
+            imageUrl,
+            thumbnailUrl: imageUrl,
+            status: "pending",
+            isExternal: false,
+            uploaderHandle,
+            submittedBy: uploaderHandle || "Community",
+            subjectKeywords,
+            consentConfirmed: true,
+            galleryEntry: galleryEntryId,
+            event: eventId,
+          },
+        }),
+      });
+    } catch {
+      await queueFallbackSubmission({
+        type: "community",
+        createdAt: new Date().toISOString(),
+        imageUrl,
+        uploaderHandle,
+        subjectKeywords,
+        galleryEntryId,
+        eventId,
+        strapiStatus: "network_error",
+      });
+      queuedCount += 1;
+      continue;
+    }
     if (!createRes.ok) {
       await queueFallbackSubmission({
         type: "community",

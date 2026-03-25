@@ -19,13 +19,17 @@ function devLoginEmail(): string {
 async function lookupStrapiUserId(email: string): Promise<number | null> {
   const token = process.env.STRAPI_API_TOKEN;
   if (!token) return null;
-  const res = await fetch(`${strapiUrl}/api/users?filters[email][$eq]=${encodeURIComponent(email)}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) return null;
-  const json = (await res.json()) as { data?: Array<{ id: number }> };
-  const id = json.data?.[0]?.id;
-  return typeof id === "number" ? id : null;
+  try {
+    const res = await fetch(`${strapiUrl}/api/users?filters[email][$eq]=${encodeURIComponent(email)}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { data?: Array<{ id: number }> };
+    const id = json.data?.[0]?.id;
+    return typeof id === "number" ? id : null;
+  } catch {
+    return null;
+  }
 }
 
 function buildProviders(): Provider[] {
@@ -79,6 +83,8 @@ function buildProviders(): Provider[] {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  /** Netlify (and other proxies) — without this, sign-in often returns 500 / UntrustedHost. */
+  trustHost: true,
   providers: buildProviders(),
   secret: process.env.AUTH_SECRET,
   session: { strategy: "jwt" },
