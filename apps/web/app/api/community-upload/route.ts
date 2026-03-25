@@ -3,6 +3,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { redirectSameOrigin } from "@/lib/request-site";
+import { isServerlessRuntime, saveImageViaStrapi } from "@/lib/strapi-upload";
 
 const STRAPI = process.env.STRAPI_URL?.replace(/\/$/, "") ?? "http://localhost:1337";
 const TOKEN = process.env.STRAPI_API_TOKEN;
@@ -73,10 +74,14 @@ export async function POST(req: Request) {
   let savedCount = 0;
   let queuedCount = 0;
 
+  const useStrapiDisk = isServerlessRuntime();
+
   for (const photoFile of photoFiles) {
     let imageUrl = "";
     try {
-      imageUrl = await saveImage(photoFile, "community");
+      imageUrl = useStrapiDisk
+        ? await saveImageViaStrapi(photoFile, "community")
+        : await saveImage(photoFile, "community");
     } catch {
       continue;
     }

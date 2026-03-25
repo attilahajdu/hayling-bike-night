@@ -4,13 +4,14 @@
   "private": true,
   "description": "Hayling Bike Night — Strapi v4 CMS",
   "scripts": {
-    "develop": "strapi develop",
+    "develop": "strapi build && node scripts/copy-content-type-schemas.js && strapi develop --no-build",
     "start": "strapi start",
     "build": "strapi build && node scripts/copy-content-type-schemas.js",
     "strapi": "strapi",
-    "dev": "strapi develop",
+    "dev": "npm run develop",
     "lint": "echo \"(cms) lint skipped\"",
-    "test": "echo \"(cms) no tests\""
+    "test": "echo \"(cms) no tests\"",
+    "regenerate-api-token": "node scripts/regenerate-api-token.js"
   },
   "dependencies": {
     "@strapi/plugin-i18n": "4.25.12",

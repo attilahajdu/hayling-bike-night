@@ -24,6 +24,7 @@ apps/web/.local-run/
 # Strapi local / updater noise
 apps/cms/.strapi-updater.json
 apps/cms/.strapi/
+apps/cms/dist/
 
 # User uploads (ignore binaries; keep folder for Strapi on Render)
 apps/cms/public/uploads/**

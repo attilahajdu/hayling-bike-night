@@ -20,7 +20,7 @@ echo "[2/3] Starting Strapi (http://localhost:1337/admin)..."
 if lsof -i :1337 >/dev/null 2>&1; then
   echo "  - Port 1337 already in use, skipping Strapi start."
 else
-  npm run develop --workspace cms > "$RUN_DIR/cms.log" 2>&1 &
+  sh -c "npm run build --workspace cms && npm run start --workspace cms" > "$RUN_DIR/cms.log" 2>&1 &
   CMS_PID=$!
   echo "CMS_PID=$CMS_PID" >> "$PID_FILE"
   echo "  - Strapi PID: $CMS_PID"
