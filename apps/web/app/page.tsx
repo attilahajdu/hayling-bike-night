@@ -5,15 +5,7 @@ import { HomeCommunityPreview } from "@/components/HomeCommunityPreview";
 import { LandingShowcaseStrip, type ShowcaseItem } from "@/components/LandingShowcaseStrip";
 import { getFacebookMedia } from "@/lib/facebook";
 import type { EventAttrs } from "@/lib/strapi";
-import {
-  getEvents,
-  getGalleryEntries,
-  getNewsList,
-  getOfficialAlbums,
-  getPetitions,
-  getPhotos,
-  getPublishedCommunityPhotoTotal,
-} from "@/lib/strapi";
+import { getEvents, getGalleryEntries, getOfficialAlbums, getPhotos, getPublishedCommunityPhotoTotal } from "@/lib/strapi";
 import { getForecastForDate } from "@/lib/weather";
 
 /** Dynamic so community photo totals stay accurate after moderation (not stuck behind ISR). */
@@ -24,16 +16,12 @@ function statNumber(value: number) {
 }
 
 export default async function HomePage() {
-  const [events, news, petitions, galleryEntries, facebookMedia] = await Promise.all([
+  const [events, galleryEntries, facebookMedia] = await Promise.all([
     getEvents({ upcoming: true }),
-    getNewsList(),
-    getPetitions(),
     getGalleryEntries(),
     getFacebookMedia(12),
   ]);
 
-  const latestNews = news?.data?.slice(0, 3) ?? [];
-  const latestPetition = petitions?.data?.[0];
   const latestEntry = galleryEntries?.data?.[0] ?? null;
   const facebookShowcase: ShowcaseItem[] = facebookMedia.map((src, idx) => ({
     id: `fb-${idx}`,
@@ -334,7 +322,7 @@ export default async function HomePage() {
         <section className="bg-white py-20 dark:bg-zinc-950">
           <div className="shell">
           <div className="mb-4 flex items-end justify-between gap-3">
-            <h2 className="section-title">Upcoming Events</h2>
+            <h2 className="section-title">Local events</h2>
             <Link href="/events" className="text-sm text-ink">
               View all →
             </Link>
@@ -397,44 +385,6 @@ export default async function HomePage() {
                 </article>
               );
             })}
-          </div>
-          </div>
-        </section>
-
-        <section className="bg-elevated py-20">
-          <div className="shell">
-          <div className="mb-4 flex items-end gap-4">
-            <h2 className="section-title">From The Community</h2>
-            <div className="h-px flex-1 bg-stone/60 dark:bg-zinc-700" />
-          </div>
-
-          <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-            {latestNews[0] ? (
-              <article className="card overflow-hidden">
-                <div className="aspect-[16/7] bg-[url('https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=1400&q=70')] bg-cover bg-center" />
-                <div className="p-5">
-                  <p className="tag-warm">Featured</p>
-                  <h3 className="mt-3 font-display font-bold text-4xl uppercase">{latestNews[0].attributes.title}</h3>
-                  <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Latest update from organisers and the rider community.</p>
-                  <Link href={`/news/${latestNews[0].attributes.slug}`} className="mt-3 inline-block text-accent">Read more →</Link>
-                </div>
-              </article>
-            ) : null}
-            <div className="space-y-4">
-              {latestNews.slice(1).map((n) => (
-                <article key={n.id} className="card p-4">
-                  <h4 className="font-display font-bold text-3xl uppercase">{n.attributes.title}</h4>
-                  <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Community, safety, and local updates.</p>
-                  <Link href={`/news/${n.attributes.slug}`} className="mt-2 inline-block text-accent">Read more →</Link>
-                </article>
-              ))}
-              {latestPetition ? (
-                <Link href={`/petitions/${latestPetition.attributes.slug}`} className="block rounded-md bg-accent px-4 py-3 text-[rgb(var(--color-on-accent))] no-underline">
-                  <p className="font-display text-2xl font-bold uppercase">Active petition</p>
-                  <p className="text-sm">{latestPetition.attributes.title} — Sign and share →</p>
-                </Link>
-              ) : null}
-            </div>
           </div>
           </div>
         </section>

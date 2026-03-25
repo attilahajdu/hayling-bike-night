@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { getFacebookPageUrl } from "@/lib/social";
 
 export function SiteFooter() {
+  const facebookUrl = getFacebookPageUrl();
   return (
     <footer className="mt-16 bg-zinc-950 py-12 text-zinc-300 dark:bg-black dark:text-zinc-400">
       <div className="shell">
@@ -22,9 +24,15 @@ export function SiteFooter() {
           <div>
             <p className="font-display font-bold text-xl uppercase text-zinc-300">Community</p>
             <div className="mt-2 space-y-1 text-sm">
-              <Link href="/events" className="block text-zinc-300 no-underline hover:text-accent">Events</Link>
-              <Link href="/news" className="block text-zinc-300 no-underline hover:text-accent">News</Link>
-              <Link href="/petitions" className="block text-zinc-300 no-underline hover:text-accent">Petitions</Link>
+              <Link href="/events" className="block text-zinc-300 no-underline hover:text-accent">Local events</Link>
+              <a
+                href={facebookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-zinc-300 no-underline hover:text-accent"
+              >
+                Facebook
+              </a>
               <Link href="/faq" className="block text-zinc-300 no-underline hover:text-accent">FAQ</Link>
             </div>
           </div>

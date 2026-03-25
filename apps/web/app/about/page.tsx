@@ -6,7 +6,7 @@ export default function AboutPage() {
         Fully marshalled motorcycle meet every Thursday, 5pm-late, April to September at John&apos;s Cafe, PO11 0AS.
       </p>
       <p className="mt-4 text-zinc-600 dark:text-zinc-400">
-        This site is the central hub for event dates, galleries, community uploads, photographer albums, news, and petitions.
+        This site is the central hub for event dates, galleries, community uploads, and photographer albums.
       </p>
     </div>
   );

@@ -10,7 +10,7 @@ export default async function EventsPage() {
   return (
     <div className="shell py-12">
       <div className="mb-6 flex items-end justify-between">
-        <h1 className="section-title">Events</h1>
+        <h1 className="section-title">Local events</h1>
         <a href="/api/calendar.ics" className="text-sm text-ink">Calendar feed (.ics)</a>
       </div>
 

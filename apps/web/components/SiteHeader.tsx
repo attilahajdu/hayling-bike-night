@@ -1,16 +1,12 @@
 import Link from "next/link";
 import { formatMeetLongUK } from "@/lib/meetDateFormat";
+import { getFacebookPageUrl } from "@/lib/social";
 import { getEvents } from "@/lib/strapi";
 import { getMeetForecast } from "@/lib/weather";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
-const nav = [
-  { href: "/events", label: "Events" },
-  { href: "/gallery", label: "Gallery" },
-  { href: "/upload", label: "Upload" },
-  { href: "/news", label: "News" },
-  { href: "/petitions", label: "Petitions" },
-];
+const linkClass =
+  "relative py-1 font-body text-sm font-medium uppercase leading-none tracking-[0.14em] text-ink no-underline transition after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-accent after:transition-all hover:text-accent hover:after:w-full sm:text-base";
 
 function NextMeetStrip({
   dateLine,
@@ -61,6 +57,7 @@ function NextMeetStrip({
 }
 
 export async function SiteHeader() {
+  const facebookUrl = getFacebookPageUrl();
   let dateLine = "This Thursday";
   let forecast: { condition: string; highC: number; lowC: number } | null = null;
   try {
@@ -85,16 +82,24 @@ export async function SiteHeader() {
           />
         </Link>
 
-        <nav aria-label="Main" className="hidden min-w-0 flex-1 items-center justify-start gap-5 pl-3 sm:flex sm:gap-6 sm:pl-5 md:gap-7">
-          {nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="relative py-1 font-body text-sm font-medium uppercase leading-none tracking-[0.14em] text-ink no-underline transition after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-accent after:transition-all hover:text-accent hover:after:w-full sm:text-base"
-            >
-              {item.label}
-            </Link>
-          ))}
+        <nav
+          aria-label="Main"
+          className="flex min-w-0 flex-1 flex-wrap items-center justify-start gap-x-4 gap-y-1 pl-2 sm:gap-x-6 sm:pl-5 md:gap-x-7"
+        >
+          <Link href="/gallery" className={linkClass}>
+            Gallery
+          </Link>
+          <Link href="/events" className={linkClass}>
+            Local events
+          </Link>
+          <a
+            href={facebookUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClass}
+          >
+            Facebook
+          </a>
         </nav>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
