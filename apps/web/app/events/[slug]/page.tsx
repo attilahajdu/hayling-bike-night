@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { eventKindLabel } from "@/components/EventCard";
+import { EventEngagement } from "@/components/EventEngagement";
 import { MarkdownBody } from "@/components/MarkdownBody";
 import { getEventBySlug } from "@/lib/strapi";
 
@@ -31,6 +32,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
   const kind = eventKindLabel(e);
   const start = new Date(e.dateStart);
   const end = new Date(e.dateEnd || e.dateStart);
+  const dateLine = start.toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
 
   return (
     <article>
@@ -76,6 +78,17 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
             >
               All events
             </Link>
+          </div>
+
+          <div className="mt-10 max-w-xl">
+            <EventEngagement
+              eventId={row.id}
+              slug={e.slug}
+              title={e.title}
+              dateLine={dateLine}
+              initialGoing={e.goingCount ?? 0}
+              initialInterested={e.interestedCount ?? 0}
+            />
           </div>
         </div>
       </div>

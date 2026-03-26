@@ -104,6 +104,9 @@ export type EventAttrs = {
   eventKind?: "bike_night" | "community" | null;
   submitterName?: string | null;
   submitterEmail?: string | null;
+  /** Public RSVP tallies (updated via /api/events/rsvp) */
+  goingCount?: number | null;
+  interestedCount?: number | null;
 };
 
 export type NewsAttrs = {

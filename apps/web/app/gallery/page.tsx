@@ -3,6 +3,7 @@ import { GalleryGrid } from "@/components/GalleryGrid";
 import { GalleryHashScroll } from "@/components/GalleryHashScroll";
 import type { OfficialAlbumAttrs } from "@/lib/strapi";
 import { getBikeNightWeekIsoRange } from "@/lib/bike-night-week";
+import { mergeOfficialAlbumsForSpotlight } from "@/lib/mergeOfficialAlbums";
 import {
   getGalleryEntries,
   getOfficialAlbums,
@@ -100,22 +101,7 @@ export default async function GalleryHubPage({ searchParams }: { searchParams: P
 
     const officialForWeek = officialRes?.data ?? [];
     const recentOfficial = recentOfficialRes?.data ?? [];
-    const seen = new Set<number>();
-    const mergedOfficial: typeof officialForWeek = [];
-    for (const a of officialForWeek) {
-      if (!seen.has(a.id)) {
-        seen.add(a.id);
-        mergedOfficial.push(a);
-      }
-    }
-    for (const a of recentOfficial) {
-      if (mergedOfficial.length >= 4) break;
-      if (!seen.has(a.id)) {
-        seen.add(a.id);
-        mergedOfficial.push(a);
-      }
-    }
-    official = mergedOfficial.length ? mergedOfficial : recentOfficial;
+    official = mergeOfficialAlbumsForSpotlight(officialForWeek, recentOfficial, 4);
     const community = (communityRes?.data ?? []).filter((p) => p.attributes.isExternal !== true);
     const recentCommunity = (recentCommunityRes?.data ?? []).filter((p) => p.attributes.isExternal !== true);
     displayCommunity = community.length ? community : recentCommunity;

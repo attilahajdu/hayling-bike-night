@@ -2,6 +2,13 @@
 
 import { useState } from "react";
 
+const SUCCESS_NOTE =
+  "Thanks — we received your listing. It will not appear on the calendar until an organiser approves it (usually within a day or two).";
+
+function isRedirectStatus(status: number) {
+  return status === 301 || status === 302 || status === 303 || status === 307 || status === 308;
+}
+
 export function CommunityEventSubmitForm() {
   const [status, setStatus] = useState<"idle" | "submitting" | "ok" | "error">("idle");
   const [note, setNote] = useState("");
@@ -13,7 +20,6 @@ export function CommunityEventSubmitForm() {
     try {
       const form = event.currentTarget;
       const data = new FormData(form);
-      // Use redirect-follow for the main case, but also read Location when available.
       const res = await fetch("/api/events/submit", { method: "POST", body: data, redirect: "manual" });
 
       const loc = res.headers.get("Location") ?? "";
@@ -27,8 +33,6 @@ export function CommunityEventSubmitForm() {
           })()
         : null;
 
-      // When `redirect: "manual"` is used, browsers may not return a useful `res.url` for the redirected target.
-      // So we primarily rely on `Location`, and only fall back to `res.url` if Location is missing.
       const fallbackUrl = (() => {
         try {
           return res.url ? new URL(res.url) : null;
@@ -43,7 +47,7 @@ export function CommunityEventSubmitForm() {
 
       if (submitted === "1") {
         setStatus("ok");
-        setNote("Thanks — an organiser will review your event before it appears on the site.");
+        setNote(SUCCESS_NOTE);
         form.reset();
         return;
       }
@@ -58,7 +62,15 @@ export function CommunityEventSubmitForm() {
         return;
       }
 
-      // Unhappy path: e.g. 500 JSON when STRAPI_API_TOKEN is missing/misconfigured.
+      // Successful POSTs use redirects; `fetch` reports 302/303/etc. as `!res.ok`, so handle redirects
+      // before the generic `!res.ok` branch (otherwise users always see "Submit failed" on Netlify).
+      if (isRedirectStatus(res.status)) {
+        setStatus("ok");
+        setNote(SUCCESS_NOTE);
+        form.reset();
+        return;
+      }
+
       if (!res.ok) {
         let bodyText = "";
         try {
@@ -90,19 +102,10 @@ export function CommunityEventSubmitForm() {
         return;
       }
 
-      // Redirect received but we couldn't read redirect params (Location missing).
-      // This is usually still a successful submit on this codepath, so don't show a misleading "failed".
-      if ([302, 303, 307].includes(res.status)) {
-        setStatus("ok");
-        setNote("Submitted. If you don't see it yet, refresh the page (moderation may take a moment).");
-        return;
-      }
-
-      // If we get here, the request likely succeeded but we couldn't parse the redirect params.
-      // This should be rare; we surface something actionable instead of a generic "failed".
-      console.warn("[events/submit] redirect params not detected", { resStatus: res.status, location: loc, resUrl: res.url });
+      console.warn("[events/submit] unexpected success shape", { resStatus: res.status, location: loc, resUrl: res.url });
       setStatus("ok");
-      setNote("Submitted. If you don’t see it, refresh the page (moderation may take a moment).");
+      setNote(SUCCESS_NOTE);
+      form.reset();
     } catch {
       setStatus("error");
       setNote("Submit failed. Please try again.");
@@ -118,10 +121,31 @@ export function CommunityEventSubmitForm() {
         <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-ink sm:text-3xl">
           Submit a ride or meet
         </h2>
-        <p className="mt-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-          Rides, meets, fundraisers — anything bike-related on Hayling or nearby. We&apos;ll review it before it goes
-          live.
+        <p className="mt-3 text-base leading-relaxed text-zinc-600 dark:text-zinc-400">
+          Tell riders about a ride, meet-up, fundraiser, or anything bike-related on Hayling or nearby. It stays private
+          until an organiser checks it.
         </p>
+
+        <details className="group mt-4 rounded-xl border border-zinc-200 bg-white/80 px-4 py-3 dark:border-zinc-600 dark:bg-zinc-950/50">
+          <summary className="cursor-pointer list-none font-display text-sm font-bold uppercase tracking-wide text-accent outline-none marker:content-none [&::-webkit-details-marker]:hidden">
+            <span className="inline-flex items-center gap-2">
+              Find out more
+              <span className="text-zinc-400 transition group-open:rotate-180" aria-hidden>
+                ▼
+              </span>
+            </span>
+          </summary>
+          <div className="mt-3 space-y-2 border-t border-zinc-200 pt-3 text-sm leading-relaxed text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
+            <p>
+              Your listing is sent to the moderation queue — it does <strong className="text-ink dark:text-zinc-200">not</strong>{" "}
+              show on the public calendar straight away. After approval, it appears with the other local events.
+            </p>
+            <p>
+              You&apos;ll need a title, date and time, location, and a short description. We only use your email if we
+              need to clarify something about your listing.
+            </p>
+          </div>
+        </details>
       </div>
 
       <label className="block text-sm text-zinc-700 dark:text-zinc-300">

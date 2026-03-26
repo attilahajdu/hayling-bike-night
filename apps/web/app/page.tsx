@@ -5,6 +5,7 @@ import { Hero } from "@/components/Hero";
 import { HomeCommunityPreview } from "@/components/HomeCommunityPreview";
 import { LandingShowcaseStrip, type ShowcaseItem } from "@/components/LandingShowcaseStrip";
 import { getFacebookMedia } from "@/lib/facebook";
+import { mergeOfficialAlbumsForSpotlight } from "@/lib/mergeOfficialAlbums";
 import { getEvents, getGalleryEntries, getOfficialAlbums, getPhotos, getPublishedCommunityPhotoTotal } from "@/lib/strapi";
 import { getForecastForDate } from "@/lib/weather";
 
@@ -44,7 +45,7 @@ export default async function HomePage() {
     ]);
   const officialForWeek = officialRes?.data ?? [];
   const recentOfficial = recentOfficialRes?.data ?? [];
-  const official = officialForWeek.length ? officialForWeek : recentOfficial;
+  const official = mergeOfficialAlbumsForSpotlight(officialForWeek, recentOfficial, 4);
   const communityPhotosHome = (communityPhotosRes?.data ?? []).filter((p) => p.attributes.isExternal !== true);
   const communityShowcase: ShowcaseItem[] = communityPhotosHome
     .map((ph) => {
@@ -254,22 +255,26 @@ export default async function HomePage() {
             aria-hidden
           />
           <div className="shell">
-            <div className="mb-8 flex flex-col gap-6 border-b border-zinc-200 pb-8 dark:border-zinc-800 sm:flex-row sm:items-end sm:justify-between">
-              <div>
+            <div className="mb-8 flex flex-col gap-6 border-b border-zinc-200 pb-8 dark:border-zinc-800 lg:flex-row lg:items-end lg:justify-between">
+              <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold uppercase tracking-[0.25em] text-accent">Plan your week</p>
                 <h2 className="mt-2 section-title">Local events</h2>
                 <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                  Bike Night meets and community rides. Submit your own meet — organisers approve before it goes live.
+                  Bike Night meets and community rides. Running something yourself? Add it on the events page — it stays
+                  off the calendar until an organiser approves it.
                 </p>
               </div>
-              <div className="flex flex-col gap-3 sm:items-end">
+              <div className="flex w-full flex-col gap-3 lg:w-auto lg:max-w-sm lg:items-stretch">
                 <Link
                   href="/events#submit-event"
-                  className="inline-flex items-center justify-center rounded-xl bg-accent px-5 py-3 font-display text-sm font-bold uppercase tracking-wide text-[rgb(var(--color-on-accent))] no-underline shadow-md shadow-accent/25 transition hover:brightness-110"
+                  className="inline-flex w-full items-center justify-center rounded-xl border-2 border-accent/40 bg-accent px-5 py-4 text-center font-display text-sm font-bold uppercase tracking-wide text-[rgb(var(--color-on-accent))] no-underline shadow-lg shadow-accent/30 transition hover:brightness-110 lg:py-3.5"
                 >
-                  Submit a ride or meet →
+                  List a ride, meet, or fundraiser →
                 </Link>
-                <Link href="/events" className="text-sm font-medium text-accent no-underline hover:underline">
+                <Link
+                  href="/events"
+                  className="text-center text-sm font-semibold text-accent no-underline hover:underline lg:text-right"
+                >
                   Browse all events →
                 </Link>
               </div>
@@ -310,8 +315,12 @@ export default async function HomePage() {
           <div className="pointer-events-none absolute inset-0 opacity-[0.04] [background-image:linear-gradient(135deg,#fff_0.5px,transparent_0.5px),linear-gradient(45deg,#fff_0.5px,transparent_0.5px)] [background-size:24px_24px]" aria-hidden />
           <div className="shell relative">
           <LandingShowcaseStrip facebook={facebookShowcase} community={communityShowcase} />
-          <p className="mt-8 text-center font-display font-bold text-4xl uppercase text-zinc-300 sm:text-5xl">“Just bikes, people, and a car park on the island.”</p>
-          <p className="mt-3 text-center text-sm uppercase tracking-[0.15em] text-zinc-500">Free to attend. Every Thursday. April to September.</p>
+          <p className="mx-auto mt-8 max-w-4xl text-center font-display text-3xl font-bold uppercase leading-tight tracking-tight text-zinc-200 sm:text-4xl md:text-5xl">
+            Hayling Bike Night — bikes everywhere you look, beach at your shoulder, the island&apos;s biggest Thursday.
+          </p>
+          <p className="mt-4 text-center text-sm font-medium uppercase tracking-[0.12em] text-zinc-400 sm:text-base">
+            Free to attend · Every Thursday · April to September
+          </p>
           </div>
         </section>
       </div>

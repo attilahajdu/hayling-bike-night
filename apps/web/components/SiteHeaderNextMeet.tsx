@@ -1,12 +1,20 @@
 export function SiteHeaderNextMeet({
   dateLine,
   forecast,
+  variant = "default",
 }: {
   dateLine: string;
   forecast: { condition: string; highC: number; lowC: number } | null;
+  /** `headerBar`: full-width strip between logo and menu on small screens */
+  variant?: "default" | "headerBar";
 }) {
+  const shell =
+    variant === "headerBar"
+      ? "w-full min-w-0 rounded-lg border border-zinc-300/90 bg-white px-3 py-2.5 shadow-sm dark:border-zinc-600 dark:bg-zinc-900 sm:px-4"
+      : "rounded-md border border-zinc-300/90 bg-white px-3 py-2 sm:px-4 sm:py-2.5 dark:border-zinc-600 dark:bg-zinc-900";
+
   return (
-    <div className="rounded-md border border-zinc-300/90 bg-white px-3 py-2 sm:px-4 sm:py-2.5 dark:border-zinc-600 dark:bg-zinc-900">
+    <div className={shell}>
       <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">Next meet</p>
       <p className="mt-0.5 text-sm font-semibold leading-snug text-accent sm:text-[0.95rem]">{dateLine}</p>
       {forecast ? (

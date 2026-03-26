@@ -72,7 +72,7 @@ export function SiteHeaderBar({ facebookUrl, dateLine, forecast }: Props) {
 
   return (
     <>
-      <div className="flex items-center justify-between gap-2 py-3 sm:gap-3 md:gap-6">
+      <div className="flex items-center gap-2 py-3 sm:gap-3 md:gap-6">
         <Link href="/" className="group min-w-0 shrink-0 no-underline">
           <img
             src="/images/hayling-bike-night-logo.png"
@@ -80,6 +80,10 @@ export function SiteHeaderBar({ facebookUrl, dateLine, forecast }: Props) {
             className="h-11 w-auto rounded-md border border-zinc-300/90 bg-white object-contain sm:h-14 dark:border-zinc-600 dark:bg-zinc-900"
           />
         </Link>
+
+        <div className="min-w-0 flex-1 md:hidden">
+          <SiteHeaderNextMeet variant="headerBar" dateLine={dateLine} forecast={forecast} />
+        </div>
 
         <nav
           aria-label="Main"
@@ -90,6 +94,9 @@ export function SiteHeaderBar({ facebookUrl, dateLine, forecast }: Props) {
           </Link>
           <Link href="/events" className={desktopLinkClass}>
             Local events
+          </Link>
+          <Link href="/events#submit-event" className={desktopLinkClass}>
+            Add listing
           </Link>
           <a
             href={facebookUrl}
@@ -102,13 +109,15 @@ export function SiteHeaderBar({ facebookUrl, dateLine, forecast }: Props) {
         </nav>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          <ThemeToggle />
+          <div className="hidden md:block">
+            <ThemeToggle />
+          </div>
           <div className="hidden md:block">
             <SiteHeaderNextMeet dateLine={dateLine} forecast={forecast} />
           </div>
           <button
             type="button"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-zinc-300 bg-white text-ink transition hover:bg-zinc-50 md:hidden dark:border-white/15 dark:bg-white/[0.06] dark:text-zinc-100 dark:hover:bg-white/[0.1]"
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-zinc-300 bg-white text-ink transition hover:bg-zinc-50 md:hidden dark:border-white/15 dark:bg-white/[0.06] dark:text-zinc-100 dark:hover:bg-white/[0.1]"
             aria-expanded={menuOpen}
             aria-controls="site-mobile-nav"
             aria-haspopup="dialog"
@@ -165,6 +174,9 @@ export function SiteHeaderBar({ facebookUrl, dateLine, forecast }: Props) {
               <Link href="/events" className={drawerLinkClass} onClick={close}>
                 Local events
               </Link>
+              <Link href="/events#submit-event" className={drawerLinkClass} onClick={close}>
+                Submit a ride or meet
+              </Link>
               <a
                 href={facebookUrl}
                 target="_blank"
@@ -179,7 +191,12 @@ export function SiteHeaderBar({ facebookUrl, dateLine, forecast }: Props) {
               </Link>
             </nav>
 
-            <div className="mt-6 border-t border-zinc-200 pt-4 dark:border-zinc-700">
+            <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-zinc-200 px-3 py-3 dark:border-zinc-700">
+              <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Theme</span>
+              <ThemeToggle />
+            </div>
+
+            <div className="mt-4 border-t border-zinc-200 pt-4 dark:border-zinc-700">
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                 Next meet
               </p>

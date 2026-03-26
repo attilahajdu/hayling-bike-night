@@ -79,6 +79,13 @@ export function EventCard({
           Forecast: {forecastText}
         </p>
       ) : null}
+      <p
+        className={`mt-2 text-[11px] font-medium tabular-nums ${
+          featured ? "text-[rgb(var(--color-on-accent))]/80" : "text-zinc-500 dark:text-zinc-400"
+        }`}
+      >
+        {attrs.goingCount ?? 0} going · {attrs.interestedCount ?? 0} interested
+      </p>
       <div className="mt-auto pt-4">
         <Link
           href={href}

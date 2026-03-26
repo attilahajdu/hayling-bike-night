@@ -20,22 +20,28 @@ export default async function EventsPage() {
           }}
         />
         <div className="pointer-events-none absolute -right-20 top-1/2 h-[420px] w-[420px] -translate-y-1/2 rounded-full bg-accent/20 blur-[100px]" aria-hidden />
-        <div className="relative grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:items-end">
+        <div className="relative grid gap-8 lg:grid-cols-[1.35fr_1fr] lg:items-end lg:gap-10">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-accent">Hayling & nearby</p>
             <h1 className="mt-4 font-display text-4xl font-bold uppercase leading-[1.05] tracking-tight sm:text-6xl">
               Local events
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-zinc-400">
-              Weekly Bike Night meets and community rides & meets. Submit your own listing and organisers will review it
-              before it appears here.
+              Official Bike Night dates plus community rides and meets. Listings you add stay hidden until an organiser
+              approves them — then they show up here with everything else.
             </p>
           </div>
-          <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-zinc-900/60 p-5 backdrop-blur-sm sm:flex-row sm:items-center sm:justify-end lg:flex-col lg:items-stretch">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">Riders</p>
+          <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-zinc-900/60 p-5 backdrop-blur-sm lg:items-stretch">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">Got a ride or meet?</p>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                Add it below — same form on mobile and desktop. You&apos;ll get a clear confirmation when it&apos;s sent
+                for review.
+              </p>
+            </div>
             <a
               href="#submit-event"
-              className="inline-flex items-center justify-center rounded-xl bg-accent px-5 py-3.5 text-center font-display text-sm font-bold uppercase tracking-wide text-[rgb(var(--color-on-accent))] no-underline shadow-lg shadow-accent/20 transition hover:brightness-110"
+              className="inline-flex w-full items-center justify-center rounded-xl bg-accent px-5 py-4 text-center font-display text-sm font-bold uppercase tracking-wide text-[rgb(var(--color-on-accent))] no-underline shadow-lg shadow-accent/25 transition hover:brightness-110 sm:py-3.5"
             >
               Submit a ride or meet →
             </a>
@@ -71,6 +77,11 @@ export default async function EventsPage() {
       </section>
 
       <section id="submit-event" className="scroll-mt-28 mt-16 border-t border-zinc-200 pt-16 dark:border-zinc-800">
+        <p className="mb-8 max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+          Use this form for anything riders should know about — not for Bike Night schedule changes (those come from the
+          organisers). Unsure? Open <span className="font-medium text-ink dark:text-zinc-200">Find out more</span> on the
+          form for how moderation works.
+        </p>
         <CommunityEventSubmitForm />
       </section>
     </div>
