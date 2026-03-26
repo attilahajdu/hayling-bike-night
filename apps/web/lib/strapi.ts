@@ -577,8 +577,13 @@ export async function getPhotos(options: {
   if (options.source === "official") {
     params.set("filters[isExternal][$eq]", "true");
   }
-  // Never send isExternal filters for source === "community": $ne / $not / extra $or groups break Strapi or drop NULL
-  // rows unpredictably. Callers always filter isExternal !== true client-side.
+  // Community grid: only non-external rows. Without this, Strapi returns *all* published photos by date — official
+  // pro shots flood the first pages and client-side filtering leaves almost nothing for the gallery hub.
+  // Same $or as getPublishedCommunityPhotoTotal; omitted when `q` is set (that path uses its own filters[$or] keys).
+  if (options.source === "community" && !options.q?.trim()) {
+    params.set("filters[$or][0][isExternal][$eq]", "false");
+    params.set("filters[$or][1][isExternal][$null]", "true");
+  }
 
   if (options.q?.trim()) appendPhotoTextSearchFilters(params, options.q);
 
@@ -587,6 +592,24 @@ export async function getPhotos(options: {
     next: { revalidate: 30 },
   });
   if (res) return normalizePhotoListResponse(res);
+  // Strapi builds that reject the community $or still work: fall back to unfiltered list + client filter.
+  if (options.source === "community" && !options.q?.trim()) {
+    return getPhotos({
+      page: options.page,
+      pageSize: options.pageSize,
+      eventSlug: options.eventSlug,
+      galleryEntrySlug: options.galleryEntrySlug,
+      createdAtGte: options.createdAtGte,
+      createdAtLt: options.createdAtLt,
+      updatedAtGte: options.updatedAtGte,
+      updatedAtLt: options.updatedAtLt,
+      photographer: options.photographer,
+      bikeMakeModel: options.bikeMakeModel,
+      bikeColour: options.bikeColour,
+      status: options.status,
+      q: options.q,
+    });
+  }
   // Text-search $or can 400 — retry same scope without `q`.
   if (options.q?.trim()) {
     return getPhotos({

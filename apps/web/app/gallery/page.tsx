@@ -78,16 +78,9 @@ export default async function GalleryHubPage({ searchParams }: { searchParams: P
       n === 0 ? "No community photos match that search" : n === 1 ? "1 photo matches your search" : `${n} photos match your search`;
   } else {
     const bikeNightWeek = getBikeNightWeekIsoRange();
-    const [officialRes, recentOfficialRes, communityRes, recentCommunityRes, weekCommunityTotal] = await Promise.all([
+    const [officialRes, recentOfficialRes, recentCommunityRes, weekCommunityTotal] = await Promise.all([
       latest ? getOfficialAlbums({ galleryEntrySlug: latest.attributes.slug, status: "published" }) : Promise.resolve(null),
       getOfficialAlbums({ status: "published" }),
-      getPhotosAllMatching({
-        source: "community",
-        updatedAtGte: bikeNightWeek.gte,
-        updatedAtLt: bikeNightWeek.lt,
-        pageSize: 100,
-        maxPages: 120,
-      }),
       getPhotosAllMatching({
         source: "community",
         pageSize: 100,
@@ -102,11 +95,8 @@ export default async function GalleryHubPage({ searchParams }: { searchParams: P
     const officialForWeek = officialRes?.data ?? [];
     const recentOfficial = recentOfficialRes?.data ?? [];
     official = mergeOfficialAlbumsForSpotlight(officialForWeek, recentOfficial, 4);
-    const community = (communityRes?.data ?? []).filter((p) => p.attributes.isExternal !== true);
     const recentCommunity = (recentCommunityRes?.data ?? []).filter((p) => p.attributes.isExternal !== true);
-    // Week-scoped `community` is for the subtitle count only. Using it as the grid hid all older
-    // photos whenever this week had ≥1 row (e.g. moderation bumps `updatedAt`).
-    displayCommunity = recentCommunity.length > 0 ? recentCommunity : community;
+    displayCommunity = recentCommunity;
     pastDisplayed = pastWeekEntries;
     const n = weekCommunityTotal;
     const showingRecentBecauseWeekEmpty = n === 0 && displayCommunity.length > 0;
