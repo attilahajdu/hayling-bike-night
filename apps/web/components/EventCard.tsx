@@ -96,7 +96,7 @@ export function EventCard({
         {attrs.goingCount ?? 0} going · {attrs.interestedCount ?? 0} interested
       </p>
       <div className="mt-auto pt-3">
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           <Link
             href={href}
             className={`inline-flex text-sm font-semibold no-underline transition hover:no-underline ${
@@ -108,10 +108,10 @@ export function EventCard({
           <a
             href={`/api/events/${attrs.slug}/ics`}
             download
-            className="inline-flex text-sm font-semibold text-zinc-700 no-underline transition hover:text-zinc-900 hover:no-underline dark:text-zinc-300 dark:hover:text-zinc-100"
+            className="inline-flex items-center rounded-full border border-zinc-300 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-zinc-700 no-underline transition hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-900 hover:no-underline dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
             aria-label={`Add ${attrs.title} to calendar`}
           >
-            Add to calendar (ICS)
+            Add to calendar
           </a>
         </div>
       </div>

@@ -11,6 +11,10 @@ type EventItem = {
 };
 
 type KindFilter = "all" | "official" | "community";
+const activePillClass =
+  "group relative inline-flex items-center overflow-hidden rounded-full border border-blue-300/70 bg-zinc-950 px-4 py-2 font-semibold text-zinc-100 no-underline shadow-[0_0_0_1px_rgba(96,165,250,0.35),0_10px_24px_rgba(2,6,23,0.45)] transition hover:-translate-y-0.5 hover:border-blue-200/80 hover:text-zinc-100 hover:no-underline hover:shadow-[0_0_0_1px_rgba(147,197,253,0.45),0_14px_28px_rgba(2,6,23,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50";
+const inactivePillClass =
+  "inline-flex items-center rounded-full border border-zinc-300 bg-white px-4 py-2 font-medium text-zinc-700 no-underline hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-700 hover:no-underline dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-200";
 
 function monthKeyFromIso(iso: string): string {
   const d = new Date(iso);
@@ -63,18 +67,34 @@ export function EventsFilterList({ items }: { items: EventItem[] }) {
             <button
               type="button"
               onClick={() => setSelectedMonth("all")}
-              className={selectedMonth === "all" ? "btn-secondary" : "rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 dark:border-zinc-600 dark:text-zinc-300"}
+              className={selectedMonth === "all" ? activePillClass : inactivePillClass}
             >
-              All
+              {selectedMonth === "all" ? (
+                <>
+                  <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_90%_at_50%_0%,rgba(78,152,255,0.34),transparent_62%)]" />
+                  <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-950/55 via-zinc-900/45 to-zinc-950/90" />
+                  <span className="relative">All</span>
+                </>
+              ) : (
+                "All"
+              )}
             </button>
             {monthOptions.map((m) => (
               <button
                 key={m.key}
                 type="button"
                 onClick={() => setSelectedMonth(m.key)}
-                className={selectedMonth === m.key ? "btn-secondary" : "rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 dark:border-zinc-600 dark:text-zinc-300"}
+                className={selectedMonth === m.key ? activePillClass : inactivePillClass}
               >
-                {m.label}
+                {selectedMonth === m.key ? (
+                  <>
+                    <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_90%_at_50%_0%,rgba(78,152,255,0.34),transparent_62%)]" />
+                    <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-950/55 via-zinc-900/45 to-zinc-950/90" />
+                    <span className="relative">{m.label}</span>
+                  </>
+                ) : (
+                  m.label
+                )}
               </button>
             ))}
           </div>
@@ -85,23 +105,47 @@ export function EventsFilterList({ items }: { items: EventItem[] }) {
             <button
               type="button"
               onClick={() => setKindFilter("all")}
-              className={kindFilter === "all" ? "btn-secondary" : "rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 dark:border-zinc-600 dark:text-zinc-300"}
+              className={kindFilter === "all" ? activePillClass : inactivePillClass}
             >
-              All
+              {kindFilter === "all" ? (
+                <>
+                  <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_90%_at_50%_0%,rgba(78,152,255,0.34),transparent_62%)]" />
+                  <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-950/55 via-zinc-900/45 to-zinc-950/90" />
+                  <span className="relative">All</span>
+                </>
+              ) : (
+                "All"
+              )}
             </button>
             <button
               type="button"
               onClick={() => setKindFilter("official")}
-              className={kindFilter === "official" ? "btn-secondary" : "rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 dark:border-zinc-600 dark:text-zinc-300"}
+              className={kindFilter === "official" ? activePillClass : inactivePillClass}
             >
-              Official
+              {kindFilter === "official" ? (
+                <>
+                  <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_90%_at_50%_0%,rgba(78,152,255,0.34),transparent_62%)]" />
+                  <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-950/55 via-zinc-900/45 to-zinc-950/90" />
+                  <span className="relative">Official</span>
+                </>
+              ) : (
+                "Official"
+              )}
             </button>
             <button
               type="button"
               onClick={() => setKindFilter("community")}
-              className={kindFilter === "community" ? "btn-secondary" : "rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 dark:border-zinc-600 dark:text-zinc-300"}
+              className={kindFilter === "community" ? activePillClass : inactivePillClass}
             >
-              Community
+              {kindFilter === "community" ? (
+                <>
+                  <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_90%_at_50%_0%,rgba(78,152,255,0.34),transparent_62%)]" />
+                  <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-950/55 via-zinc-900/45 to-zinc-950/90" />
+                  <span className="relative">Community</span>
+                </>
+              ) : (
+                "Community"
+              )}
             </button>
           </div>
         </div>

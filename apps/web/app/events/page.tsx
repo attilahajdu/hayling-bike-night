@@ -1,14 +1,12 @@
 import { CommunityEventSubmitForm } from "@/components/CommunityEventSubmitForm";
 import { EventsFilterList } from "@/components/EventsFilterList";
-import { getDemoUpcomingEvents } from "@/lib/demo-events";
 import { getEvents } from "@/lib/strapi";
 
 export const dynamic = "force-dynamic";
 
 export default async function EventsPage() {
   const res = await getEvents({ upcoming: true });
-  const list = res?.data ?? [];
-  const displayList = list.length === 0 && process.env.NODE_ENV !== "production" ? getDemoUpcomingEvents(10) : list;
+  const displayList = res?.data ?? [];
 
   return (
     <div className="shell py-10 sm:py-14">
