@@ -41,7 +41,7 @@ export default async function EventsPage() {
             </div>
             <a
               href="#submit-event"
-              className="inline-flex w-full items-center justify-center rounded-xl bg-accent px-5 py-4 text-center font-display text-sm font-bold uppercase tracking-wide text-[rgb(var(--color-on-accent))] no-underline shadow-lg shadow-accent/25 transition hover:brightness-110 sm:py-3.5"
+              className="btn-primary w-full sm:py-3.5"
             >
               Suggest a ride or meet →
             </a>

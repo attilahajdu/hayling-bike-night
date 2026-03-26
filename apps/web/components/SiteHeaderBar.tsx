@@ -10,12 +10,13 @@ const desktopLinkClass =
   "relative py-1 font-body text-sm font-medium uppercase leading-none tracking-[0.14em] text-ink no-underline transition after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-accent after:transition-all hover:text-accent hover:after:w-full sm:text-base";
 
 const drawerLinkClass =
-  "flex min-h-[48px] items-center rounded-lg px-3 py-3 font-display text-base font-bold uppercase tracking-wide text-ink no-underline transition hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-800";
+  "flex min-h-[52px] items-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 font-display text-base font-bold uppercase tracking-wide text-zinc-100 no-underline transition hover:border-blue-300/45 hover:bg-blue-500/15";
 
 type Props = {
   facebookUrl: string;
   dateLine: string;
   forecast: { condition: string; highC: number; lowC: number } | null;
+  nextMeetHref: string;
 };
 
 function MenuIcon({ open }: { open: boolean }) {
@@ -43,7 +44,7 @@ function MenuIcon({ open }: { open: boolean }) {
   );
 }
 
-export function SiteHeaderBar({ facebookUrl, dateLine, forecast }: Props) {
+export function SiteHeaderBar({ facebookUrl, dateLine, forecast, nextMeetHref }: Props) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
@@ -72,7 +73,7 @@ export function SiteHeaderBar({ facebookUrl, dateLine, forecast }: Props) {
 
   return (
     <>
-      <div className="flex items-center gap-2 py-3 sm:gap-3 md:gap-6">
+      <div className="flex items-center justify-between gap-2 py-3 sm:gap-3 md:gap-6">
         <Link href="/" className="group min-w-0 shrink-0 no-underline">
           <img
             src="/images/hayling-bike-night-logo.png"
@@ -80,10 +81,6 @@ export function SiteHeaderBar({ facebookUrl, dateLine, forecast }: Props) {
             className="h-11 w-auto rounded-md border border-zinc-300/90 bg-white object-contain sm:h-14 dark:border-zinc-600 dark:bg-zinc-900"
           />
         </Link>
-
-        <div className="min-w-0 flex-1 md:hidden">
-          <SiteHeaderNextMeet variant="headerBar" dateLine={dateLine} forecast={forecast} />
-        </div>
 
         <nav
           aria-label="Main"
@@ -113,7 +110,7 @@ export function SiteHeaderBar({ facebookUrl, dateLine, forecast }: Props) {
             <ThemeToggle />
           </div>
           <div className="hidden md:block">
-            <SiteHeaderNextMeet dateLine={dateLine} forecast={forecast} />
+            <SiteHeaderNextMeet dateLine={dateLine} forecast={forecast} href={nextMeetHref} />
           </div>
           <button
             type="button"
@@ -128,12 +125,15 @@ export function SiteHeaderBar({ facebookUrl, dateLine, forecast }: Props) {
           </button>
         </div>
       </div>
+      <div className="pb-0 md:hidden">
+        <SiteHeaderNextMeet variant="headerBar" dateLine={dateLine} forecast={forecast} href={nextMeetHref} />
+      </div>
 
       {menuOpen ? (
         <>
           <button
             type="button"
-            className="fixed inset-0 z-[60] bg-black/50 md:hidden"
+            className="fixed inset-0 z-[98] bg-black/70 backdrop-blur-[1px] md:hidden"
             aria-label="Close menu"
             onClick={close}
           />
@@ -142,29 +142,29 @@ export function SiteHeaderBar({ facebookUrl, dateLine, forecast }: Props) {
             role="dialog"
             aria-modal="true"
             aria-labelledby={titleId}
-            className="fixed inset-y-0 right-0 z-[61] flex w-[min(100%,20rem)] max-w-full flex-col border-l border-zinc-200 bg-surface shadow-2xl md:hidden dark:border-zinc-700 dark:bg-[rgb(var(--color-elevated))]"
+            className="fixed inset-0 z-[99] flex min-h-screen w-screen flex-col overflow-y-auto bg-zinc-950 text-zinc-100 md:hidden"
             style={{
-              paddingTop: "max(0.75rem, env(safe-area-inset-top, 0px))",
-              paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0px))",
-              paddingRight: "max(0.75rem, env(safe-area-inset-right, 0px))",
-              paddingLeft: "0.75rem",
+              paddingTop: "max(0.9rem, env(safe-area-inset-top, 0px))",
+              paddingBottom: "max(0.9rem, env(safe-area-inset-bottom, 0px))",
+              paddingRight: "max(1rem, env(safe-area-inset-right, 0px))",
+              paddingLeft: "max(1rem, env(safe-area-inset-left, 0px))",
             }}
           >
-            <div className="flex items-center justify-between gap-2 border-b border-zinc-200 pb-3 dark:border-zinc-700">
-              <p id={titleId} className="font-display text-lg font-bold uppercase tracking-tight text-ink dark:text-zinc-100">
+            <div className="flex items-center justify-between gap-2 border-b border-white/12 pb-3">
+              <p id={titleId} className="font-display text-lg font-bold uppercase tracking-tight text-zinc-100">
                 Menu
               </p>
               <button
                 ref={closeBtnRef}
                 type="button"
-                className="inline-flex h-11 min-w-[44px] items-center justify-center rounded-lg px-3 text-sm font-semibold text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                className="inline-flex h-11 min-w-[44px] items-center justify-center rounded-lg px-3 text-sm font-semibold text-zinc-200 hover:bg-white/[0.08]"
                 onClick={close}
               >
                 Close
               </button>
             </div>
 
-            <nav aria-label="Mobile" className="mt-4 flex flex-1 flex-col gap-1 overflow-y-auto">
+            <nav aria-label="Mobile" className="mt-5 flex flex-col gap-2">
               <Link href="/" className={drawerLinkClass} onClick={close}>
                 Home
               </Link>
@@ -172,10 +172,10 @@ export function SiteHeaderBar({ facebookUrl, dateLine, forecast }: Props) {
                 Gallery
               </Link>
               <Link href="/events" className={drawerLinkClass} onClick={close}>
-                Local events
+                Events
               </Link>
-              <Link href="/events#submit-event" className={drawerLinkClass} onClick={close}>
-                Fancy a ride?
+              <Link href="/#find-us" className={drawerLinkClass} onClick={close}>
+                Find us
               </Link>
               <a
                 href={facebookUrl}
@@ -191,16 +191,16 @@ export function SiteHeaderBar({ facebookUrl, dateLine, forecast }: Props) {
               </Link>
             </nav>
 
-            <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-zinc-200 px-3 py-3 dark:border-zinc-700">
-              <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Theme</span>
+            <div className="mt-5 flex items-center justify-between gap-3 rounded-xl border border-white/12 bg-white/[0.05] px-3 py-3">
+              <span className="text-sm font-medium text-zinc-300">Theme</span>
               <ThemeToggle />
             </div>
 
-            <div className="mt-4 border-t border-zinc-200 pt-4 dark:border-zinc-700">
-              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            <div className="mt-5 border-t border-white/12 pt-4">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
                 Next meet
               </p>
-              <SiteHeaderNextMeet dateLine={dateLine} forecast={forecast} />
+              <SiteHeaderNextMeet dateLine={dateLine} forecast={forecast} href={nextMeetHref} />
             </div>
           </div>
         </>

@@ -267,7 +267,7 @@ export default async function HomePage() {
               <div className="flex w-full flex-col gap-3 lg:w-auto lg:max-w-sm lg:items-stretch">
                 <Link
                   href="/events#submit-event"
-                  className="inline-flex w-full items-center justify-center rounded-xl border-2 border-accent/40 bg-accent px-5 py-4 text-center font-display text-sm font-bold uppercase tracking-wide text-[rgb(var(--color-on-accent))] no-underline shadow-lg shadow-accent/30 transition hover:brightness-110 lg:py-3.5"
+                  className="btn-primary w-full lg:py-3.5"
                 >
                   Suggest a ride or meet →
                 </Link>

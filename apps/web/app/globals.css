@@ -76,7 +76,10 @@ a {
     border-color: rgb(var(--color-card-border) / 0.65);
   }
   .btn-primary {
-    @apply inline-flex min-h-[44px] items-center justify-center rounded-xl bg-accent px-6 py-3 font-display text-[0.9375rem] font-bold uppercase tracking-[0.05em] text-white no-underline shadow-sm transition hover:bg-accentHover sm:text-base sm:tracking-[0.06em] dark:font-semibold dark:text-[rgb(var(--color-on-accent))] dark:shadow-[0_1px_0_rgb(0_0_0/0.2)] dark:ring-1 dark:ring-white/15 dark:hover:bg-accentHover;
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-2xl border border-blue-300/70 bg-gradient-to-r from-sky-500 via-blue-500 to-blue-600 px-6 py-3 font-display text-[0.9375rem] font-bold uppercase tracking-[0.05em] text-white no-underline shadow-[0_10px_24px_rgba(30,64,175,0.35)] transition sm:text-base sm:tracking-[0.06em] dark:font-semibold;
+    @apply hover:border-blue-200/90 hover:from-sky-600 hover:via-blue-600 hover:to-blue-700 hover:text-white;
+    @apply active:translate-y-[1px] active:from-sky-700 active:via-blue-700 active:to-blue-800;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/70;
   }
   .btn-secondary {
     @apply inline-flex min-h-[44px] items-center justify-center rounded-xl border border-white/80 bg-white/10 px-6 py-3 font-display text-[0.9375rem] font-bold uppercase tracking-[0.05em] text-white no-underline backdrop-blur-sm transition hover:bg-white/20 sm:text-base sm:tracking-[0.06em] dark:border-white/35 dark:bg-white/[0.1] dark:text-zinc-50 dark:hover:border-white/45 dark:hover:bg-white/[0.14];
@@ -105,7 +108,7 @@ a.btn-secondary:focus-visible {
 .dark a.btn-primary,
 .dark a.btn-primary:hover,
 .dark a.btn-primary:focus-visible {
-  color: rgb(var(--color-on-accent)); /* matches --color-on-accent (white in dark) */
+  color: #fff;
 }
 
 .dark a.btn-secondary,

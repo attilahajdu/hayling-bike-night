@@ -151,55 +151,54 @@ export default async function GalleryHubPage({ searchParams }: { searchParams: P
   };
 
   return (
-    <div className={searchMode ? "shell pb-8 pt-4 sm:pb-10 sm:pt-5" : "shell py-8 sm:py-10"}>
+    <div className={searchMode ? "shell pb-8 pt-4 sm:pb-10 sm:pt-5" : "shell pb-8 pt-3 sm:py-10"}>
       <GalleryHashScroll />
+      {searchMode ? <h1 className="sr-only">Gallery search results</h1> : null}
+
       {!searchMode ? (
-        <section className="relative overflow-hidden rounded-lg sm:rounded-xl">
-          <div className="absolute inset-0 bg-[url('/images/hayling-bike-night-hero.png')] bg-cover bg-center" />
-          <div className="absolute inset-0 bg-black/50" />
-          <div className="relative px-6 py-8 sm:px-10 sm:py-10">
-            <h1 className="font-display text-4xl font-bold uppercase tracking-tight text-zinc-200 sm:text-5xl">Gallery</h1>
-            <p className="mt-3 max-w-md text-sm leading-snug text-zinc-100 sm:text-[0.95rem]">
-              The best of Hayling Bike Night, from local photographers and the people who make the night what it is.
-            </p>
-            <p className="mt-2 max-w-md text-sm leading-snug text-zinc-200/95">
-              Browse this week&apos;s featured galleries, see photos shared by the community, and add your own if you caught a
-              great moment.
-            </p>
-          </div>
+        <section className="grid grid-cols-2 gap-3">
+          <Link
+            href="/gallery#pro-photographer-galleries"
+            className="group relative flex min-h-[124px] items-center justify-center overflow-hidden rounded-xl border border-zinc-700/80 bg-zinc-950 p-3 text-center no-underline text-zinc-100 shadow-xl transition hover:-translate-y-0.5 hover:border-blue-400/60 hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 sm:min-h-[136px] sm:p-5"
+          >
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(78,152,255,0.35),transparent_62%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-950/55 via-zinc-900/45 to-zinc-950/90" />
+            <div className="relative flex w-full flex-col items-center justify-center gap-2">
+              <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-zinc-500/70 bg-zinc-900/70 text-sm text-blue-200 transition group-hover:border-blue-300/70 group-hover:text-blue-100">
+                →
+              </span>
+              <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-300/90">Jump to</p>
+              <p className="mt-1.5 font-display text-[1.25rem] font-bold uppercase leading-tight text-zinc-100 sm:text-xl">Pro Galleries</p>
+              </div>
+            </div>
+          </Link>
+          <Link
+            href="/gallery#community-photos"
+            className="group relative flex min-h-[124px] items-center justify-center overflow-hidden rounded-xl border border-zinc-700/80 bg-zinc-950 p-3 text-center no-underline text-zinc-100 shadow-xl transition hover:-translate-y-0.5 hover:border-blue-400/60 hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 sm:min-h-[136px] sm:p-5"
+          >
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(78,152,255,0.35),transparent_62%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-950/55 via-zinc-900/45 to-zinc-950/90" />
+            <div className="relative flex w-full flex-col items-center justify-center gap-2">
+              <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-zinc-500/70 bg-zinc-900/70 text-sm text-blue-200 transition group-hover:border-blue-300/70 group-hover:text-blue-100">
+                →
+              </span>
+              <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-300/90">Jump to</p>
+              <p className="mt-1.5 font-display text-[1.25rem] font-bold uppercase leading-tight text-zinc-100 sm:text-xl">Community Photos</p>
+              </div>
+            </div>
+          </Link>
         </section>
       ) : null}
 
-      {searchMode ? <h1 className="sr-only">Gallery search results</h1> : null}
-
-      <form className={searchMode ? "flex flex-col gap-2 sm:flex-row sm:items-center" : "mt-6 flex flex-col gap-2 sm:flex-row sm:items-center"} method="get">
-        <label className="sr-only" htmlFor="gallery-search">
-          Search gallery, tags, handles
-        </label>
-        <input
-          id="gallery-search"
-          name="q"
-          defaultValue={q}
-          placeholder="Tags, @handle, bike, photographer…"
-          className="h-12 flex-1 rounded-md border border-zinc-300 bg-white px-4 text-ink shadow-sm placeholder:text-zinc-500 dark:border-zinc-600 dark:bg-zinc-900 dark:placeholder:text-zinc-400"
-        />
-        <button className="btn-primary h-12 shrink-0 px-8" type="submit">
-          Search
-        </button>
-      </form>
-      {searchMode ? (
-        <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-300">
-          Showing all matches across weeks for <span className="font-medium text-ink">&ldquo;{qTrim}&rdquo;</span>
-        </p>
-      ) : null}
-
       {/* Photographer galleries — one block under search; grid auto-fits 1–4 cards */}
-      <section className="mt-10 md:mt-12">
+      <section id="pro-photographer-galleries" className="scroll-mt-24 mt-10 md:mt-12">
         <div className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm sm:p-6 dark:border-zinc-700 dark:bg-[rgb(var(--color-card))]">
           <div className="flex flex-col gap-5 md:flex-row md:items-stretch md:gap-6">
             <div className="min-w-0 flex-1">
               <h2 className="section-title text-[1.65rem] leading-none sm:text-[1.85rem]">
-                {searchMode ? "Matching photographer galleries" : "Photographer galleries"}
+                {searchMode ? "Matching pro galleries" : "Pro galleries"}
               </h2>
               <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
                 {searchMode
@@ -213,7 +212,7 @@ export default async function GalleryHubPage({ searchParams }: { searchParams: P
                 href="/submit-album"
                 className="btn-primary mt-2 block w-full text-center"
               >
-                Submit your weekly gallery link here
+                Submit your gallery link
               </Link>
             </aside>
           </div>
@@ -322,7 +321,7 @@ export default async function GalleryHubPage({ searchParams }: { searchParams: P
           <div className="mx-auto grid max-w-6xl gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-8">
             <div className="min-w-0">
               <h2 className="section-title text-[1.65rem] leading-none sm:text-[1.85rem]">
-                {searchMode ? "Matching community photos" : "From the community"}
+                {searchMode ? "Matching community photos" : "Community photos"}
               </h2>
               <p className="mt-1.5 font-body text-sm font-medium uppercase tracking-wide text-zinc-700 dark:text-zinc-200 sm:text-base">
                 {communityCountLine}
@@ -349,11 +348,19 @@ export default async function GalleryHubPage({ searchParams }: { searchParams: P
               aria-current={sort === "latest" ? "page" : undefined}
               className={
                 sort === "latest"
-                  ? "inline-flex items-center rounded-full bg-accent px-4 py-2 font-semibold text-[rgb(var(--color-on-accent))] no-underline shadow-sm hover:bg-accent hover:text-[rgb(var(--color-on-accent))] hover:no-underline"
+                  ? "group relative inline-flex items-center overflow-hidden rounded-full border border-blue-300/70 bg-zinc-950 px-4 py-2 font-semibold text-zinc-100 no-underline shadow-[0_0_0_1px_rgba(96,165,250,0.35),0_10px_24px_rgba(2,6,23,0.45)] transition hover:-translate-y-0.5 hover:border-blue-200/80 hover:text-zinc-100 hover:no-underline hover:shadow-[0_0_0_1px_rgba(147,197,253,0.45),0_14px_28px_rgba(2,6,23,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
                   : "inline-flex items-center rounded-full border border-zinc-300 bg-white px-4 py-2 font-medium text-zinc-700 no-underline hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-700 hover:no-underline dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
               }
             >
-              Latest uploads
+              {sort === "latest" ? (
+                <>
+                  <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_90%_at_50%_0%,rgba(78,152,255,0.34),transparent_62%)]" />
+                  <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-950/55 via-zinc-900/45 to-zinc-950/90" />
+                  <span className="relative">Latest uploads</span>
+                </>
+              ) : (
+                "Latest uploads"
+              )}
             </Link>
             <Link
               href={sortHref("likes")}
@@ -361,11 +368,19 @@ export default async function GalleryHubPage({ searchParams }: { searchParams: P
               aria-current={sort === "likes" ? "page" : undefined}
               className={
                 sort === "likes"
-                  ? "inline-flex items-center rounded-full bg-accent px-4 py-2 font-semibold text-[rgb(var(--color-on-accent))] no-underline shadow-sm hover:bg-accent hover:text-[rgb(var(--color-on-accent))] hover:no-underline"
+                  ? "group relative inline-flex items-center overflow-hidden rounded-full border border-blue-300/70 bg-zinc-950 px-4 py-2 font-semibold text-zinc-100 no-underline shadow-[0_0_0_1px_rgba(96,165,250,0.35),0_10px_24px_rgba(2,6,23,0.45)] transition hover:-translate-y-0.5 hover:border-blue-200/80 hover:text-zinc-100 hover:no-underline hover:shadow-[0_0_0_1px_rgba(147,197,253,0.45),0_14px_28px_rgba(2,6,23,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
                   : "inline-flex items-center rounded-full border border-zinc-300 bg-white px-4 py-2 font-medium text-zinc-700 no-underline hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-700 hover:no-underline dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
               }
             >
-              Most liked
+              {sort === "likes" ? (
+                <>
+                  <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_90%_at_50%_0%,rgba(78,152,255,0.34),transparent_62%)]" />
+                  <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-950/55 via-zinc-900/45 to-zinc-950/90" />
+                  <span className="relative">Most liked</span>
+                </>
+              ) : (
+                "Most liked"
+              )}
             </Link>
           </div>
           {displayCommunity.length ? (
@@ -385,6 +400,34 @@ export default async function GalleryHubPage({ searchParams }: { searchParams: P
             </div>
           )}
         </div>
+      </section>
+
+      <section className="mt-10 md:mt-12">
+        <p className="text-sm text-zinc-600 dark:text-zinc-300">
+          Can&apos;t find what you&apos;re looking for? Try searching for it.
+        </p>
+        <form className="mt-3" method="get">
+          <div className="flex flex-col gap-3 rounded-lg border border-zinc-200 bg-white p-3 shadow-sm sm:flex-row sm:items-center dark:border-zinc-700 dark:bg-[rgb(var(--color-card))]">
+            <label className="sr-only" htmlFor="gallery-search">
+              Search gallery, tags, handles
+            </label>
+            <input
+              id="gallery-search"
+              name="q"
+              defaultValue={q}
+              placeholder="Tags, @handle, bike, photographer…"
+              className="h-14 w-full flex-1 rounded-xl border border-zinc-300 bg-white px-4 py-3 text-[1.1rem] leading-snug text-ink placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-zinc-600 dark:bg-zinc-900 dark:placeholder:text-zinc-400 sm:h-12 sm:rounded-md sm:py-2 sm:text-base"
+            />
+            <button className="btn-primary h-12 w-full shrink-0 px-8 sm:w-auto" type="submit">
+              Search
+            </button>
+          </div>
+        </form>
+        {searchMode ? (
+          <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-300">
+            Showing all matches across weeks for <span className="font-medium text-ink">&ldquo;{qTrim}&rdquo;</span>
+          </p>
+        ) : null}
       </section>
 
       {/* Previous weeks */}
