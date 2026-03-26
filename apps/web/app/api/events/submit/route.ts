@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
-import { redirectSameOrigin } from "@/lib/request-site";
 
 const STRAPI = process.env.STRAPI_URL?.replace(/\/$/, "") ?? "http://localhost:1337";
 const TOKEN = process.env.STRAPI_API_TOKEN?.trim();
@@ -17,12 +16,15 @@ function slugify(s: string): string {
     .slice(0, 60);
 }
 
+/** JSON-only responses so fetch() never relies on redirect/opaque status 0. */
 export async function POST(req: Request) {
-  if (!TOKEN) return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
+  if (!TOKEN) {
+    return NextResponse.json({ error: "misconfigured", message: "Server misconfigured" }, { status: 500 });
+  }
 
   const form = await req.formData();
   if (safe(form.get("website"))) {
-    return redirectSameOrigin(req, "/events?ok=1");
+    return NextResponse.json({ ok: true });
   }
 
   const title = safe(form.get("title"));
@@ -34,12 +36,12 @@ export async function POST(req: Request) {
   const eventStartRaw = safe(form.get("eventStart"));
 
   if (!title || !location || !details || !submitterName || !submitterEmail || !consent || !eventStartRaw) {
-    return redirectSameOrigin(req, "/events?error=missing");
+    return NextResponse.json({ error: "missing" }, { status: 400 });
   }
 
   const start = new Date(eventStartRaw);
   if (Number.isNaN(start.getTime())) {
-    return redirectSameOrigin(req, "/events?error=date");
+    return NextResponse.json({ error: "date" }, { status: 400 });
   }
 
   const end = new Date(start.getTime() + 4 * 60 * 60 * 1000);
@@ -87,13 +89,13 @@ export async function POST(req: Request) {
       });
     }
   } catch {
-    return redirectSameOrigin(req, "/events?error=network");
+    return NextResponse.json({ error: "network" }, { status: 503 });
   }
 
   if (!createRes.ok) {
     const errText = await createRes.text().catch(() => "");
     console.error("[events/submit] Strapi error", createRes.status, errText.slice(0, 500));
-    return redirectSameOrigin(req, "/events?error=strapi");
+    return NextResponse.json({ error: "strapi" }, { status: 502 });
   }
 
   // Force newly created community events to stay as drafts.
@@ -115,5 +117,5 @@ export async function POST(req: Request) {
     // If we can't force draft mode, we still created the event; moderation will handle it.
   }
 
-  return redirectSameOrigin(req, "/events?submitted=1");
+  return NextResponse.json({ ok: true, submitted: true });
 }

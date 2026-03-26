@@ -5,10 +5,6 @@ import { useState } from "react";
 const SUCCESS_NOTE =
   "Nice one — we've got it. You're still the host; the Hayling Bike Night crew just gives it a quick once-over so the calendar stays tidy (no spam, no duplicates). It'll show for everyone once they've waved it through — usually within a day or two.";
 
-function isRedirectStatus(status: number) {
-  return status === 301 || status === 302 || status === 303 || status === 307 || status === 308;
-}
-
 export function CommunityEventSubmitForm() {
   const [status, setStatus] = useState<"idle" | "submitting" | "ok" | "error">("idle");
   const [note, setNote] = useState("");
@@ -20,93 +16,54 @@ export function CommunityEventSubmitForm() {
     try {
       const form = event.currentTarget;
       const data = new FormData(form);
-      const res = await fetch("/api/events/submit", { method: "POST", body: data, redirect: "manual" });
+      const res = await fetch("/api/events/submit", { method: "POST", body: data });
 
-      const loc = res.headers.get("Location") ?? "";
-      const locUrl = loc
-        ? (() => {
-            try {
-              return loc.startsWith("http") ? new URL(loc) : new URL(loc, window.location.origin);
-            } catch {
-              return null;
-            }
-          })()
-        : null;
+      let payload: { ok?: boolean; submitted?: boolean; error?: string; message?: string } = {};
+      try {
+        payload = (await res.json()) as typeof payload;
+      } catch {
+        /* non-JSON */
+      }
 
-      const fallbackUrl = (() => {
-        try {
-          return res.url ? new URL(res.url) : null;
-        } catch {
-          return null;
-        }
-      })();
-
-      const effectiveUrl = locUrl ?? fallbackUrl;
-      const submitted = effectiveUrl?.searchParams.get("submitted");
-      const err = effectiveUrl?.searchParams.get("error");
-
-      if (submitted === "1") {
+      if (res.ok && payload.ok) {
         setStatus("ok");
         setNote(SUCCESS_NOTE);
         form.reset();
         return;
       }
 
-      if (err) {
+      const code = payload.error;
+      if (code === "missing") {
         setStatus("error");
-        if (err === "missing")
-          setNote("Fill in the fields marked * and tick the box — we need the lot before we can pass it on.");
-        else if (err === "date") setNote("Check the date and time.");
-        else if (err === "network") setNote("Could not reach the server. Try again shortly.");
-        else if (err === "strapi") setNote("Could not save your event. Please try again or contact the team.");
-        else setNote("Something went wrong.");
+        setNote("Fill in the fields marked * and tick the box — we need the lot before we can pass it on.");
         return;
       }
-
-      // Successful POSTs use redirects; `fetch` reports 302/303/etc. as `!res.ok`, so handle redirects
-      // before the generic `!res.ok` branch (otherwise users always see "Submit failed" on Netlify).
-      if (isRedirectStatus(res.status)) {
-        setStatus("ok");
-        setNote(SUCCESS_NOTE);
-        form.reset();
-        return;
-      }
-
-      if (!res.ok) {
-        let bodyText = "";
-        try {
-          bodyText = await res.text();
-        } catch {
-          /* ignore */
-        }
-
-        let serverMsg = bodyText;
-        try {
-          const j = JSON.parse(bodyText);
-          serverMsg = j?.error ?? j?.message ?? bodyText;
-        } catch {
-          /* not JSON */
-        }
-
-        console.error("[events/submit] failed", res.status, serverMsg);
-
-        if (res.status === 500 && String(serverMsg).toLowerCase().includes("misconfigured")) {
-          setStatus("error");
-          setNote(
-            "Server misconfigured: STRAPI_API_TOKEN is missing on Netlify. Add `STRAPI_API_TOKEN` under Site settings → Environment variables, then redeploy.",
-          );
-          return;
-        }
-
+      if (code === "date") {
         setStatus("error");
-        setNote("Submit failed. Please try again.");
+        setNote("Check the date and time.");
+        return;
+      }
+      if (code === "network") {
+        setStatus("error");
+        setNote("Could not reach the server. Try again shortly.");
+        return;
+      }
+      if (code === "strapi") {
+        setStatus("error");
+        setNote("Could not save your event. Please try again or contact the team.");
+        return;
+      }
+      if (code === "misconfigured" || (res.status === 500 && String(payload.message ?? payload.error ?? "").toLowerCase().includes("misconfigured"))) {
+        setStatus("error");
+        setNote(
+          "Server misconfigured: STRAPI_API_TOKEN is missing on Netlify. Add `STRAPI_API_TOKEN` under Site settings → Environment variables, then redeploy.",
+        );
         return;
       }
 
-      console.warn("[events/submit] unexpected success shape", { resStatus: res.status, location: loc, resUrl: res.url });
-      setStatus("ok");
-      setNote(SUCCESS_NOTE);
-      form.reset();
+      console.error("[events/submit] failed", res.status, payload);
+      setStatus("error");
+      setNote("Submit failed. Please try again.");
     } catch {
       setStatus("error");
       setNote("Submit failed. Please try again.");
