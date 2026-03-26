@@ -104,7 +104,9 @@ export default async function GalleryHubPage({ searchParams }: { searchParams: P
     official = mergeOfficialAlbumsForSpotlight(officialForWeek, recentOfficial, 4);
     const community = (communityRes?.data ?? []).filter((p) => p.attributes.isExternal !== true);
     const recentCommunity = (recentCommunityRes?.data ?? []).filter((p) => p.attributes.isExternal !== true);
-    displayCommunity = community.length ? community : recentCommunity;
+    // Week-scoped `community` is for the subtitle count only. Using it as the grid hid all older
+    // photos whenever this week had ≥1 row (e.g. moderation bumps `updatedAt`).
+    displayCommunity = recentCommunity.length > 0 ? recentCommunity : community;
     pastDisplayed = pastWeekEntries;
     const n = weekCommunityTotal;
     const showingRecentBecauseWeekEmpty = n === 0 && displayCommunity.length > 0;
