@@ -164,6 +164,9 @@ export type OfficialAlbumAttrs = {
   galleryEntry?: { data: { id: number; attributes: GalleryEntryAttrs } | null };
   event?: { data: { id: number; attributes: EventAttrs } | null };
   photographer?: { data: { id: number; attributes: PhotographerAttrs } | null };
+  /** Strapi system fields (when returned by API) */
+  createdAt?: string | null;
+  updatedAt?: string | null;
 };
 
 export type PhotoAttrs = {

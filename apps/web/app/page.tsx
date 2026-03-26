@@ -2,10 +2,36 @@ import Link from "next/link";
 import { EventCard } from "@/components/EventCard";
 import { Hero } from "@/components/Hero";
 import { HomeCommunityPreview } from "@/components/HomeCommunityPreview";
+import { HomeProGalleriesAccordion, type ProGalleryCard } from "@/components/HomeProGalleriesAccordion";
 import { LandingShowcaseStrip, type ShowcaseItem } from "@/components/LandingShowcaseStrip";
 import { mergeOfficialAlbumsForSpotlight } from "@/lib/mergeOfficialAlbums";
+import type { OfficialAlbumAttrs } from "@/lib/strapi";
 import { getEvents, getGalleryEntries, getOfficialAlbums, getPhotos, getPublishedCommunityPhotoTotal } from "@/lib/strapi";
 import { getForecastForDate } from "@/lib/weather";
+
+type OfficialAlbumRow = { id: number; attributes: OfficialAlbumAttrs };
+
+function officialAlbumTimestampMs(attrs: OfficialAlbumAttrs): number {
+  const t = attrs.updatedAt ?? attrs.createdAt;
+  return t ? new Date(t).getTime() : 0;
+}
+
+function mapOfficialRowToProGalleryCard(row: OfficialAlbumRow): ProGalleryCard {
+  const attrs = row.attributes;
+  const raw = attrs.updatedAt ?? attrs.createdAt;
+  const dateLabel = raw
+    ? new Date(raw).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
+    : "—";
+  return {
+    id: `official-${row.id}`,
+    title: attrs.title,
+    albumUrl: attrs.albumUrl,
+    websiteUrl: attrs.shopUrl ?? attrs.albumUrl,
+    coverImageUrl: attrs.coverImageUrl ?? "/images/ridebikes.png",
+    photographer: attrs.photographer?.data?.attributes.name ?? attrs.submittedByName ?? "Photographer",
+    dateLabel,
+  };
+}
 
 /** Dynamic so community photo totals stay accurate after moderation (not stuck behind ISR). */
 export const dynamic = "force-dynamic";
@@ -82,19 +108,26 @@ export default async function HomePage() {
             <h3 className="font-display font-bold text-3xl uppercase text-ink">Pro Photographers&apos; Latest Galleries</h3>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Official photographer albums.</p>
             {(() => {
-              const officialCards = official.map((a) => ({
-                id: `official-${a.id}`,
-                title: a.attributes.title,
-                albumUrl: a.attributes.albumUrl,
-                websiteUrl: a.attributes.shopUrl ?? a.attributes.albumUrl,
-                coverImageUrl: a.attributes.coverImageUrl ?? "/images/ridebikes.png",
-                photographer: a.attributes.photographer?.data?.attributes.name ?? a.attributes.submittedByName ?? "Photographer",
-                dateLabel: "21 August 2025",
-              }));
+              const weekCutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+              const lastWeekRows = recentOfficial
+                .filter((row) => officialAlbumTimestampMs(row.attributes) >= weekCutoff)
+                .sort((a, b) => officialAlbumTimestampMs(b.attributes) - officialAlbumTimestampMs(a.attributes));
+
+              const officialCards = official.map((a) => mapOfficialRowToProGalleryCard(a as OfficialAlbumRow));
+              const lastWeekCards = lastWeekRows.map((row) => mapOfficialRowToProGalleryCard(row));
+
+              let expandedAlbums: ProGalleryCard[] = [];
+              if (lastWeekCards.length > 0) {
+                const ids = new Set(lastWeekCards.map((c) => c.id));
+                const first = officialCards[0];
+                expandedAlbums = first && !ids.has(first.id) ? [first, ...lastWeekCards] : lastWeekCards;
+              } else {
+                expandedAlbums = officialCards.slice(1);
+              }
+
               const cards = officialCards.slice(0, 4);
               const displayCards = cards;
-              const mobileCards = cards;
-              const mobileCard = mobileCards[0];
+              const mobileLatest = officialCards[0];
               if (cards.length === 0) {
                 return (
                   <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">
@@ -104,54 +137,8 @@ export default async function HomePage() {
               }
               return (
                 <>
-                  {mobileCard ? (
-                    <div className="mt-4 sm:hidden">
-                      <article className="card overflow-hidden">
-                        <div className="aspect-[4/3] bg-zinc-200">
-                          <img src={mobileCard.coverImageUrl} alt={mobileCard.title} className="h-full w-full object-cover" loading="lazy" />
-                        </div>
-                        <div className="p-3">
-                          <p className="font-display font-bold text-xl uppercase text-ink">{mobileCard.title}</p>
-                          <p className="text-xs uppercase tracking-wide text-zinc-500">{mobileCard.photographer}</p>
-                          <p className="text-xs uppercase tracking-wide text-warm">{mobileCard.dateLabel}</p>
-                          <div className="mt-2 flex gap-3 text-sm">
-                            <Link href={mobileCard.albumUrl} target="_blank" className="text-accent">Gallery →</Link>
-                            <Link href={mobileCard.websiteUrl} target="_blank" className="text-accent">Website →</Link>
-                          </div>
-                        </div>
-                      </article>
-                      <details className="group mt-3">
-                        <summary className="list-none marker:content-none [&::-webkit-details-marker]:hidden">
-                          <span className="btn-primary w-full justify-center gap-2">
-                            See all pro galleries
-                            <span className="text-[11px] transition group-open:rotate-180" aria-hidden>
-                              ▼
-                            </span>
-                          </span>
-                        </summary>
-                        <div className="mt-3 space-y-3">
-                          {mobileCards.slice(1).map((p) => (
-                            <article key={`mobile-${p.id}`} className="card overflow-hidden">
-                              <div className="aspect-[4/3] bg-zinc-200">
-                                <img src={p.coverImageUrl} alt={p.title} className="h-full w-full object-cover" loading="lazy" />
-                              </div>
-                              <div className="p-3">
-                                <p className="font-display font-bold text-xl uppercase text-ink">{p.title}</p>
-                                <p className="text-xs uppercase tracking-wide text-zinc-500">{p.photographer}</p>
-                                <p className="text-xs uppercase tracking-wide text-warm">{p.dateLabel}</p>
-                                <div className="mt-2 flex gap-3 text-sm">
-                                  <Link href={p.albumUrl} target="_blank" className="text-accent">Gallery →</Link>
-                                  <Link href={p.websiteUrl} target="_blank" className="text-accent">Website →</Link>
-                                </div>
-                              </div>
-                            </article>
-                          ))}
-                          <Link href="/gallery#pro-galleries" className="inline-flex text-sm font-semibold text-accent no-underline hover:no-underline">
-                            Open full galleries page →
-                          </Link>
-                        </div>
-                      </details>
-                    </div>
+                  {mobileLatest ? (
+                    <HomeProGalleriesAccordion latest={mobileLatest} expandedAlbums={expandedAlbums} />
                   ) : null}
                   <div className="mt-4 hidden gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-4">
                     {displayCards.map((p) => (
