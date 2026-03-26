@@ -3,25 +3,37 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 
-const STORAGE_PREFIX = "hayling:event-rsvp:";
+const STORAGE_V2 = "hayling:event-rsvp-v2:";
+const STORAGE_LEGACY = "hayling:event-rsvp:";
 
-type Choice = "going" | "interested";
+type LocalState = { going: boolean; interested: boolean };
 
-function readStoredChoice(eventId: number): Choice | null {
+function readLocalState(eventId: number): LocalState {
   try {
-    const v = localStorage.getItem(STORAGE_PREFIX + eventId);
-    if (v === "going" || v === "interested") return v;
+    const v2 = localStorage.getItem(STORAGE_V2 + eventId);
+    if (v2) {
+      const p = JSON.parse(v2) as unknown;
+      if (p && typeof p === "object") {
+        const o = p as Record<string, unknown>;
+        return {
+          going: o.going === true,
+          interested: o.interested === true,
+        };
+      }
+    }
+    const leg = localStorage.getItem(STORAGE_LEGACY + eventId);
+    if (leg === "going") return { going: true, interested: false };
+    if (leg === "interested") return { going: false, interested: true };
   } catch {
     /* ignore */
   }
-  return null;
+  return { going: false, interested: false };
 }
 
-function writeStoredChoice(eventId: number, choice: Choice | null) {
+function writeLocalState(eventId: number, s: LocalState) {
   try {
-    const key = STORAGE_PREFIX + eventId;
-    if (choice == null) localStorage.removeItem(key);
-    else localStorage.setItem(key, choice);
+    localStorage.setItem(STORAGE_V2 + eventId, JSON.stringify(s));
+    localStorage.removeItem(STORAGE_LEGACY + eventId);
   } catch {
     /* ignore */
   }
@@ -38,19 +50,19 @@ export function EventEngagement({
   eventId: number;
   slug: string;
   title: string;
-  /** Short line for share text, e.g. "Thu 3 Apr, 17:00" */
   dateLine: string;
   initialGoing: number;
   initialInterested: number;
 }) {
   const router = useRouter();
-  const headingId = useId();
+  const sectionId = useId();
   const shareWrapRef = useRef<HTMLDivElement>(null);
   const [origin, setOrigin] = useState("");
   const [going, setGoing] = useState(initialGoing);
   const [interested, setInterested] = useState(initialInterested);
-  const [selected, setSelected] = useState<Choice | null>(null);
-  const [busy, setBusy] = useState<Choice | null>(null);
+  const [goingOn, setGoingOn] = useState(false);
+  const [interestedOn, setInterestedOn] = useState(false);
+  const [busy, setBusy] = useState<"going" | "interested" | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [copyDone, setCopyDone] = useState(false);
@@ -60,7 +72,9 @@ export function EventEngagement({
   }, []);
 
   useEffect(() => {
-    setSelected(readStoredChoice(eventId));
+    const s = readLocalState(eventId);
+    setGoingOn(s.going);
+    setInterestedOn(s.interested);
   }, [eventId]);
 
   useEffect(() => {
@@ -68,7 +82,6 @@ export function EventEngagement({
     setInterested(initialInterested);
   }, [initialGoing, initialInterested]);
 
-  // Always sync totals from API on load — avoids stale cached HTML showing 0 after refresh.
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -83,7 +96,7 @@ export function EventEngagement({
         setGoing(data.goingCount ?? 0);
         setInterested(data.interestedCount ?? 0);
       } catch {
-        /* keep SSR props */
+        /* keep SSR */
       }
     })();
     return () => {
@@ -106,18 +119,18 @@ export function EventEngagement({
     ? `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(eventUrl)}`
     : "#";
 
-  const postRsvp = useCallback(
-    async (choice: Choice, previousChoice: Choice | null) => {
+  const applyDelta = useCallback(
+    async (field: "going" | "interested", delta: 1 | -1) => {
       setErr(null);
-      setBusy(choice);
+      setBusy(field);
       try {
         const res = await fetch("/api/events/rsvp", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             eventId,
-            choice,
-            previousChoice,
+            field,
+            delta,
             website: "",
           }),
         });
@@ -129,15 +142,15 @@ export function EventEngagement({
         } | null;
         if (!res.ok || !data?.ok) {
           setErr(data?.error ?? "Something went wrong. Try again.");
-          return;
+          return false;
         }
         setGoing(data.goingCount ?? 0);
         setInterested(data.interestedCount ?? 0);
-        setSelected(choice);
-        writeStoredChoice(eventId, choice);
         router.refresh();
+        return true;
       } catch {
         setErr("Could not reach the server. Try again.");
+        return false;
       } finally {
         setBusy(null);
       }
@@ -145,10 +158,26 @@ export function EventEngagement({
     [eventId, router],
   );
 
-  function onPick(choice: Choice) {
+  async function toggleInterested() {
     if (busy) return;
-    if (selected === choice) return;
-    void postRsvp(choice, selected);
+    const next = !interestedOn;
+    const delta: 1 | -1 = next ? 1 : -1;
+    const ok = await applyDelta("interested", delta);
+    if (ok) {
+      setInterestedOn(next);
+      writeLocalState(eventId, { going: goingOn, interested: next });
+    }
+  }
+
+  async function toggleGoing() {
+    if (busy) return;
+    const next = !goingOn;
+    const delta: 1 | -1 = next ? 1 : -1;
+    const ok = await applyDelta("going", delta);
+    if (ok) {
+      setGoingOn(next);
+      writeLocalState(eventId, { going: next, interested: interestedOn });
+    }
   }
 
   async function handleSharePrimaryClick() {
@@ -179,133 +208,115 @@ export function EventEngagement({
       setCopyDone(true);
       window.setTimeout(() => setCopyDone(false), 2000);
     } catch {
-      setErr("Could not copy — try sharing via Facebook below.");
+      setErr("Could not copy — try Facebook below.");
     }
   }
 
-  const btnBase =
-    "group inline-flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-2xl border px-5 py-4 text-center shadow-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:min-h-[56px] sm:flex-row sm:gap-3 sm:py-4";
-  const btnIdle =
-    "border-zinc-200/90 bg-white/90 text-ink backdrop-blur-sm hover:-translate-y-0.5 hover:border-accent/30 hover:bg-white hover:shadow-md dark:border-zinc-600/80 dark:bg-zinc-800/80 dark:text-zinc-100 dark:hover:border-accent/40 dark:hover:bg-zinc-800";
-  const btnActive =
-    "border-transparent bg-accent text-[rgb(var(--color-on-accent))] shadow-lg shadow-accent/25 ring-2 ring-accent/20 ring-offset-2 ring-offset-[rgb(var(--color-card))] dark:ring-offset-zinc-900";
+  const rowBtn = (active: boolean, disabled: boolean) =>
+    `w-full rounded-full px-5 py-3.5 text-[0.9375rem] font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-50 ${
+      active
+        ? "bg-ink text-white shadow-sm dark:bg-zinc-100 dark:text-zinc-900"
+        : "border border-zinc-300/90 bg-transparent text-ink hover:border-zinc-400 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-100 dark:hover:border-zinc-500 dark:hover:bg-zinc-800/50"
+    }`;
 
   return (
     <section
-      className="relative overflow-hidden rounded-[1.75rem] border border-zinc-200/80 bg-gradient-to-br from-white via-zinc-50/90 to-accent/[0.06] p-6 shadow-[0_20px_50px_-24px_rgba(0,0,0,0.12)] dark:border-zinc-600/50 dark:from-zinc-900 dark:via-zinc-900 dark:to-accent/[0.08] sm:rounded-[2rem] sm:p-8"
-      aria-labelledby={headingId}
+      id={sectionId}
+      className="w-full border-t border-zinc-200/80 pt-10 dark:border-zinc-700/80"
+      aria-labelledby={`${sectionId}-label`}
     >
-      <div
-        className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-accent/10 blur-3xl dark:bg-accent/15"
-        aria-hidden
-      />
-      <div className="relative">
-        <h2
-          id={headingId}
-          className="font-display text-lg font-bold tracking-tight text-ink dark:text-zinc-100 sm:text-xl"
-        >
-          Who&apos;s coming?
+      <div className="flex flex-col gap-1">
+        <h2 id={`${sectionId}-label`} className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">
+          Who&apos;s coming
         </h2>
-        <p className="mt-2 max-w-md text-[0.9375rem] leading-relaxed text-zinc-600 dark:text-zinc-400">
-          Tap if you&apos;re planning to ride or still weighing it up — everyone sees the same totals. Share the event
-          with mates when you&apos;re ready.
+        <p className="max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+          Counts are for everyone. You can mark both &quot;interested&quot; and &quot;going&quot; — we only remember your taps on{" "}
+          <span className="font-medium text-zinc-700 dark:text-zinc-300">this device</span>.
         </p>
-        <p className="mt-2 text-xs leading-snug text-zinc-500 dark:text-zinc-500">
-          Your choice is remembered on <strong className="font-medium text-zinc-600 dark:text-zinc-400">this device</strong>{" "}
-          only (so another browser can add its own tap — that&apos;s normal).
-        </p>
+      </div>
 
-        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:gap-4" role="group" aria-label="RSVP">
-          <button
-            type="button"
-            disabled={busy !== null}
-            aria-pressed={selected === "going"}
-            onClick={() => onPick("going")}
-            className={`${btnBase} ${selected === "going" ? btnActive : btnIdle} disabled:opacity-60`}
-          >
-            <span className="font-display text-sm font-bold tracking-wide">I&apos;m going</span>
-            <span
-              className={`tabular-nums text-sm ${selected === "going" ? "text-[rgb(var(--color-on-accent))]/90" : "text-zinc-500 group-hover:text-zinc-600 dark:text-zinc-400 dark:group-hover:text-zinc-300"}`}
-            >
-              {going} {going === 1 ? "person" : "people"}
-            </span>
-          </button>
-          <button
-            type="button"
-            disabled={busy !== null}
-            aria-pressed={selected === "interested"}
-            onClick={() => onPick("interested")}
-            className={`${btnBase} ${selected === "interested" ? btnActive : btnIdle} disabled:opacity-60`}
-          >
-            <span className="font-display text-sm font-bold tracking-wide">I&apos;m interested</span>
-            <span
-              className={`tabular-nums text-sm ${selected === "interested" ? "text-[rgb(var(--color-on-accent))]/90" : "text-zinc-500 group-hover:text-zinc-600 dark:text-zinc-400 dark:group-hover:text-zinc-300"}`}
-            >
-              {interested} {interested === 1 ? "person" : "people"}
-            </span>
-          </button>
-        </div>
-
-        <div className="relative mt-6" ref={shareWrapRef}>
-          <button
-            type="button"
-            onClick={() => void handleSharePrimaryClick()}
-            className="inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl border border-zinc-200/90 bg-white/90 px-5 py-3.5 text-[0.9375rem] font-semibold text-ink shadow-sm backdrop-blur-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md dark:border-zinc-600 dark:bg-zinc-800/90 dark:text-zinc-100 dark:hover:border-zinc-500 sm:w-auto"
-          >
-            <ShareIcon />
-            Share this event
-          </button>
-
-          {shareOpen ? (
-            <div
-              className="absolute left-0 right-0 top-full z-10 mt-3 rounded-2xl border border-zinc-200/90 bg-white p-4 shadow-xl dark:border-zinc-600 dark:bg-zinc-900 sm:left-auto sm:right-0 sm:min-w-[260px]"
-              role="menu"
-              aria-label="Share options"
-            >
-              <p className="mb-3 text-xs font-medium text-zinc-500 dark:text-zinc-400">Share via</p>
-              <div className="flex flex-col gap-2">
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    void onCopyLink();
-                  }}
-                  className="rounded-xl border border-zinc-200/80 px-4 py-2.5 text-left text-sm font-medium transition hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-                >
-                  {copyDone ? "Link copied" : "Copy link"}
-                </button>
-                <a
-                  href={facebookShareUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  role="menuitem"
-                  className="rounded-xl border border-zinc-200/80 px-4 py-2.5 text-sm font-medium text-accent no-underline transition hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-                  onClick={(e) => {
-                    if (!eventUrl) e.preventDefault();
-                    setShareOpen(false);
-                  }}
-                >
-                  Facebook
-                </a>
-              </div>
-            </div>
-          ) : null}
-        </div>
-
-        {err ? (
-          <p className="mt-4 text-sm text-red-600 dark:text-red-400" role="alert">
-            {err}
+      <div className="mt-6 flex w-full flex-col gap-6">
+        {/* Interested first (left when row; top when stacked) */}
+        <div className="w-full space-y-2">
+          <p className="text-xs tabular-nums text-zinc-500 dark:text-zinc-400">
+            <span className="font-medium text-zinc-700 dark:text-zinc-300">{interested}</span>{" "}
+            {interested === 1 ? "person is" : "people are"} interested
           </p>
+          <button
+            type="button"
+            disabled={busy !== null}
+            aria-pressed={interestedOn}
+            onClick={() => void toggleInterested()}
+            className={rowBtn(interestedOn, busy !== null)}
+          >
+            {interestedOn ? "Interested — tap to undo" : "I’m interested"}
+          </button>
+        </div>
+
+        <div className="w-full space-y-2">
+          <p className="text-xs tabular-nums text-zinc-500 dark:text-zinc-400">
+            <span className="font-medium text-zinc-700 dark:text-zinc-300">{going}</span>{" "}
+            {going === 1 ? "person is" : "people are"} going
+          </p>
+          <button
+            type="button"
+            disabled={busy !== null}
+            aria-pressed={goingOn}
+            onClick={() => void toggleGoing()}
+            className={rowBtn(goingOn, busy !== null)}
+          >
+            {goingOn ? "Going — tap to undo" : "I’m going"}
+          </button>
+        </div>
+      </div>
+
+      <div className="relative mt-8 w-full" ref={shareWrapRef}>
+        <button
+          type="button"
+          onClick={() => void handleSharePrimaryClick()}
+          className="w-full rounded-full border border-zinc-300/90 py-3 text-sm font-medium text-zinc-600 transition hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800/50"
+        >
+          Share event
+        </button>
+
+        {shareOpen ? (
+          <div
+            className="absolute left-0 right-0 top-full z-10 mt-2 rounded-2xl border border-zinc-200 bg-white p-3 shadow-lg dark:border-zinc-600 dark:bg-zinc-900"
+            role="menu"
+            aria-label="Share options"
+          >
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => void onCopyLink()}
+                className="rounded-xl px-3 py-2 text-left text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800"
+              >
+                {copyDone ? "Copied" : "Copy link"}
+              </button>
+              <a
+                href={facebookShareUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                role="menuitem"
+                className="rounded-xl px-3 py-2 text-sm text-accent no-underline hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                onClick={(e) => {
+                  if (!eventUrl) e.preventDefault();
+                  setShareOpen(false);
+                }}
+              >
+                Facebook
+              </a>
+            </div>
+          </div>
         ) : null}
       </div>
-    </section>
-  );
-}
 
-function ShareIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+      {err ? (
+        <p className="mt-4 text-sm text-red-600 dark:text-red-400" role="alert">
+          {err}
+        </p>
+      ) : null}
+    </section>
   );
 }

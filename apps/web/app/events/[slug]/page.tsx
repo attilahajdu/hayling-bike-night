@@ -36,75 +36,67 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
   const dateLine = start.toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
 
   return (
-    <article>
-      <div className="border-b border-zinc-200 bg-gradient-to-b from-zinc-100/90 to-white dark:border-zinc-800 dark:from-zinc-900 dark:to-zinc-950">
-        <div className="shell py-10 sm:py-14">
-          <Link
-            href="/events"
-            className="text-sm font-medium text-zinc-500 no-underline transition hover:text-accent dark:text-zinc-400"
-          >
-            ← Local events
-          </Link>
-          <div className="mt-6 flex flex-wrap items-start gap-3">
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
-                kind === "Bike Night"
-                  ? "bg-accent/15 text-accent dark:bg-accent/25"
-                  : "bg-zinc-200 text-zinc-800 dark:bg-zinc-700 dark:text-zinc-100"
-              }`}
-            >
-              {kind === "Bike Night" ? "Bike Night" : "Community"}
-            </span>
+    <article className="border-b border-zinc-200 bg-gradient-to-b from-zinc-100/90 to-white dark:border-zinc-800 dark:from-zinc-900 dark:to-zinc-950">
+      <div className="shell max-w-3xl py-10 sm:py-14">
+        <span
+          className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
+            kind === "Bike Night"
+              ? "bg-accent/15 text-accent dark:bg-accent/25"
+              : "bg-zinc-200 text-zinc-800 dark:bg-zinc-700 dark:text-zinc-100"
+          }`}
+        >
+          {kind === "Bike Night" ? "Bike Night" : "Community"}
+        </span>
+
+        <h1 className="mt-5 font-display text-4xl font-bold uppercase leading-tight tracking-tight text-ink sm:text-5xl">
+          {e.title}
+        </h1>
+
+        <p className="mt-4 text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">{e.location}</p>
+
+        {note ? (
+          <div className="mt-8 rounded-3xl border border-zinc-200/90 bg-white/80 p-6 shadow-sm backdrop-blur-sm dark:border-zinc-700 dark:bg-[rgb(var(--color-card))]/80">
+            <MarkdownBody source={note} />
           </div>
-          <h1 className="mt-4 max-w-4xl font-display text-4xl font-bold uppercase leading-tight tracking-tight text-ink sm:text-5xl">
-            {e.title}
-          </h1>
-          <p className="mt-4 text-lg text-zinc-600 dark:text-zinc-400">{e.location}</p>
-          <div className="mt-6 flex flex-wrap gap-6 text-sm text-zinc-600 dark:text-zinc-400">
+        ) : null}
+
+        <section className="mt-10 space-y-2 border-t border-zinc-200/80 pt-10 dark:border-zinc-700/80">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">
+            When
+          </h2>
+          <p className="text-base text-zinc-800 dark:text-zinc-200">
             <time dateTime={e.dateStart}>
               {start.toLocaleString("en-GB", { dateStyle: "full", timeStyle: "short" })}
             </time>
-            <span aria-hidden className="text-zinc-300 dark:text-zinc-600">
-              ·
-            </span>
-            <span>Until {end.toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}</span>
-          </div>
-          {e.submitterName ? (
-            <p className="mt-4 text-xs text-zinc-500">Listed by {e.submitterName}</p>
-          ) : null}
-          <div className="mt-8 flex flex-wrap gap-4">
-            <Link
-              href="/events"
-              className="btn-primary inline-flex items-center justify-center no-underline"
-            >
-              All events
-            </Link>
-          </div>
+          </p>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            Until {end.toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}
+          </p>
+        </section>
 
-          <div className="mt-10 max-w-xl">
-            <EventEngagement
-              eventId={row.id}
-              slug={e.slug}
-              title={e.title}
-              dateLine={dateLine}
-              initialGoing={e.goingCount ?? 0}
-              initialInterested={e.interestedCount ?? 0}
-            />
-          </div>
+        {e.submitterName ? (
+          <p className="mt-8 text-sm text-zinc-500 dark:text-zinc-400">
+            Listed by <span className="font-medium text-zinc-700 dark:text-zinc-300">{e.submitterName}</span>
+          </p>
+        ) : null}
+
+        <EventEngagement
+          eventId={row.id}
+          slug={e.slug}
+          title={e.title}
+          dateLine={dateLine}
+          initialGoing={e.goingCount ?? 0}
+          initialInterested={e.interestedCount ?? 0}
+        />
+
+        <div className="mt-12 border-t border-zinc-200/80 pt-8 dark:border-zinc-700/80">
+          <Link
+            href="/events"
+            className="inline-flex text-sm font-semibold text-accent no-underline transition hover:underline"
+          >
+            ← Back to all events
+          </Link>
         </div>
-      </div>
-
-      <div className="shell py-10 sm:py-12">
-        {note ? (
-          <div className="mx-auto max-w-3xl">
-            <h2 className="font-display text-xl font-bold uppercase text-ink">Details</h2>
-            <div className="mt-4 rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-[rgb(var(--color-card))]">
-              <MarkdownBody source={note} />
-            </div>
-          </div>
-        ) : (
-          <p className="text-center text-zinc-500 dark:text-zinc-400">No extra details for this listing.</p>
-        )}
       </div>
     </article>
   );

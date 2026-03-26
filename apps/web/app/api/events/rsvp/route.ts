@@ -1,20 +1,8 @@
 import { NextResponse } from "next/server";
 import { getStrapiBaseUrl } from "@/lib/strapi-env";
 
-type Choice = "going" | "interested";
-
 function clamp(n: number) {
   return Math.max(0, Math.floor(n));
-}
-
-function parseChoice(v: unknown): Choice | null {
-  if (v === "going" || v === "interested") return v;
-  return null;
-}
-
-function parsePrevious(v: unknown): Choice | null {
-  if (v === null || v === undefined || v === "") return null;
-  return parseChoice(v);
 }
 
 type StrapiEventOne = {
@@ -43,7 +31,7 @@ async function readCountsFromStrapi(
   };
 }
 
-/** Live counts for hydration (avoids stale HTML / CDN caching showing wrong totals). */
+/** Live counts for hydration (avoids stale HTML / CDN caching wrong totals). */
 export async function GET(req: Request) {
   const STRAPI = getStrapiBaseUrl().replace(/\/$/, "");
   const TOKEN = process.env.STRAPI_API_TOKEN?.trim();
@@ -71,6 +59,10 @@ export async function GET(req: Request) {
   );
 }
 
+/**
+ * Adjust one counter independently (`going` and `interested` are not mutually exclusive).
+ * Body: { eventId, field: "going" | "interested", delta: 1 | -1, website: "" }
+ */
 export async function POST(req: Request) {
   const STRAPI = getStrapiBaseUrl().replace(/\/$/, "");
   const TOKEN = process.env.STRAPI_API_TOKEN?.trim();
@@ -90,14 +82,10 @@ export async function POST(req: Request) {
   }
 
   const eventId = Number(body.eventId);
-  const choice = parseChoice(body.choice);
-  const previousChoice = parsePrevious(body.previousChoice);
+  const field = body.field === "going" || body.field === "interested" ? body.field : null;
+  const delta = Number(body.delta);
 
-  if (!Number.isFinite(eventId) || eventId < 1 || !choice) {
-    return NextResponse.json({ ok: false, error: "Bad request" }, { status: 400 });
-  }
-
-  if (previousChoice !== null && previousChoice !== "going" && previousChoice !== "interested") {
+  if (!Number.isFinite(eventId) || eventId < 1 || !field || (delta !== 1 && delta !== -1)) {
     return NextResponse.json({ ok: false, error: "Bad request" }, { status: 400 });
   }
 
@@ -108,16 +96,8 @@ export async function POST(req: Request) {
 
   let going = current.going;
   let interested = current.interested;
-
-  if (previousChoice === choice) {
-    return NextResponse.json({ ok: true, goingCount: going, interestedCount: interested });
-  }
-
-  if (previousChoice === "going") going = clamp(going - 1);
-  if (previousChoice === "interested") interested = clamp(interested - 1);
-
-  if (choice === "going") going += 1;
-  if (choice === "interested") interested += 1;
+  if (field === "going") going = clamp(going + delta);
+  if (field === "interested") interested = clamp(interested + delta);
 
   const putRes = await fetch(`${STRAPI}/api/events/${eventId}`, {
     method: "PUT",
