@@ -5,7 +5,8 @@ import { EventEngagement } from "@/components/EventEngagement";
 import { MarkdownBody } from "@/components/MarkdownBody";
 import { getEventBySlug } from "@/lib/strapi";
 
-export const revalidate = 120;
+/** RSVP / live counts must not be served from stale cache */
+export const dynamic = "force-dynamic";
 
 function strapiRichTextToPlain(note: unknown): string {
   if (typeof note === "string") return note;
@@ -97,7 +98,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
         {note ? (
           <div className="mx-auto max-w-3xl">
             <h2 className="font-display text-xl font-bold uppercase text-ink">Details</h2>
-            <div className="mt-4 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-[rgb(var(--color-card))]">
+            <div className="mt-4 rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-[rgb(var(--color-card))]">
               <MarkdownBody source={note} />
             </div>
           </div>

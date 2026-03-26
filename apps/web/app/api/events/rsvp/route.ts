@@ -24,6 +24,53 @@ type StrapiEventOne = {
   } | null;
 };
 
+async function readCountsFromStrapi(
+  STRAPI: string,
+  TOKEN: string,
+  eventId: number,
+): Promise<{ going: number; interested: number } | null> {
+  const getRes = await fetch(`${STRAPI}/api/events/${eventId}?publicationState=live`, {
+    headers: { Authorization: `Bearer ${TOKEN}` },
+    cache: "no-store",
+  });
+  if (!getRes.ok) return null;
+  const json = (await getRes.json()) as StrapiEventOne;
+  const attrs = json?.data?.attributes;
+  if (!json?.data?.id || !attrs) return null;
+  return {
+    going: clamp(Number(attrs.goingCount ?? 0)),
+    interested: clamp(Number(attrs.interestedCount ?? 0)),
+  };
+}
+
+/** Live counts for hydration (avoids stale HTML / CDN caching showing wrong totals). */
+export async function GET(req: Request) {
+  const STRAPI = getStrapiBaseUrl().replace(/\/$/, "");
+  const TOKEN = process.env.STRAPI_API_TOKEN?.trim();
+  if (!TOKEN) {
+    return NextResponse.json({ ok: false, error: "Server misconfigured" }, { status: 500 });
+  }
+
+  const eventId = Number(new URL(req.url).searchParams.get("eventId"));
+  if (!Number.isFinite(eventId) || eventId < 1) {
+    return NextResponse.json({ ok: false, error: "Bad request" }, { status: 400 });
+  }
+
+  const counts = await readCountsFromStrapi(STRAPI, TOKEN, eventId);
+  if (!counts) {
+    return NextResponse.json({ ok: false, error: "Event not found" }, { status: 404 });
+  }
+
+  return NextResponse.json(
+    { ok: true, goingCount: counts.going, interestedCount: counts.interested },
+    {
+      headers: {
+        "Cache-Control": "private, no-store, max-age=0",
+      },
+    },
+  );
+}
+
 export async function POST(req: Request) {
   const STRAPI = getStrapiBaseUrl().replace(/\/$/, "");
   const TOKEN = process.env.STRAPI_API_TOKEN?.trim();
@@ -54,23 +101,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Bad request" }, { status: 400 });
   }
 
-  const getRes = await fetch(`${STRAPI}/api/events/${eventId}?publicationState=live`, {
-    headers: { Authorization: `Bearer ${TOKEN}` },
-    cache: "no-store",
-  });
-
-  if (!getRes.ok) {
+  const current = await readCountsFromStrapi(STRAPI, TOKEN, eventId);
+  if (!current) {
     return NextResponse.json({ ok: false, error: "Event not found" }, { status: 404 });
   }
 
-  const json = (await getRes.json()) as StrapiEventOne;
-  const attrs = json?.data?.attributes;
-  if (!json?.data?.id || !attrs) {
-    return NextResponse.json({ ok: false, error: "Event not found" }, { status: 404 });
-  }
-
-  let going = clamp(Number(attrs.goingCount ?? 0));
-  let interested = clamp(Number(attrs.interestedCount ?? 0));
+  let going = current.going;
+  let interested = current.interested;
 
   if (previousChoice === choice) {
     return NextResponse.json({ ok: true, goingCount: going, interestedCount: interested });

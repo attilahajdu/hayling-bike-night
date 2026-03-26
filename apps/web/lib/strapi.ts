@@ -277,9 +277,10 @@ export async function getEvents(params?: { upcoming?: boolean }) {
 }
 
 export async function getEventBySlug(slug: string) {
+  // Always fresh: RSVP counts must not be stuck behind ISR (was revalidate 120 → zeros after refresh).
   const res = await strapiFetch<ListResponse<EventAttrs>>(
     `/events?filters[slug][$eq]=${encodeURIComponent(slug)}&publicationState=live`,
-    { next: { revalidate: 120 } },
+    { cache: "no-store" },
   );
   return res?.data?.[0] ?? null;
 }

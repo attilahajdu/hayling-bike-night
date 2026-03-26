@@ -68,6 +68,29 @@ export function EventEngagement({
     setInterested(initialInterested);
   }, [initialGoing, initialInterested]);
 
+  // Always sync totals from API on load — avoids stale cached HTML showing 0 after refresh.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/events/rsvp?eventId=${eventId}`, { cache: "no-store" });
+        const data = (await res.json().catch(() => null)) as {
+          ok?: boolean;
+          goingCount?: number;
+          interestedCount?: number;
+        } | null;
+        if (cancelled || !data?.ok) return;
+        setGoing(data.goingCount ?? 0);
+        setInterested(data.interestedCount ?? 0);
+      } catch {
+        /* keep SSR props */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [eventId]);
+
   useEffect(() => {
     if (!shareOpen) return;
     function onDocClick(e: MouseEvent) {
@@ -161,105 +184,120 @@ export function EventEngagement({
   }
 
   const btnBase =
-    "inline-flex min-h-[48px] flex-1 flex-col items-center justify-center gap-0.5 rounded-xl border-2 px-4 py-3 text-center text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:min-h-[52px] sm:flex-row sm:gap-2 sm:py-3.5";
-  const btnIdle = "border-zinc-200 bg-white text-ink hover:border-accent/40 hover:bg-accent/5 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-accent/50";
-  const btnActive = "border-accent bg-accent text-[rgb(var(--color-on-accent))] shadow-md shadow-accent/20";
+    "group inline-flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-2xl border px-5 py-4 text-center shadow-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:min-h-[56px] sm:flex-row sm:gap-3 sm:py-4";
+  const btnIdle =
+    "border-zinc-200/90 bg-white/90 text-ink backdrop-blur-sm hover:-translate-y-0.5 hover:border-accent/30 hover:bg-white hover:shadow-md dark:border-zinc-600/80 dark:bg-zinc-800/80 dark:text-zinc-100 dark:hover:border-accent/40 dark:hover:bg-zinc-800";
+  const btnActive =
+    "border-transparent bg-accent text-[rgb(var(--color-on-accent))] shadow-lg shadow-accent/25 ring-2 ring-accent/20 ring-offset-2 ring-offset-[rgb(var(--color-card))] dark:ring-offset-zinc-900";
 
   return (
     <section
-      className="rounded-2xl border border-accent/25 bg-gradient-to-br from-accent/[0.07] to-transparent p-5 shadow-sm dark:border-accent/30 dark:from-accent/[0.12] sm:p-6"
+      className="relative overflow-hidden rounded-[1.75rem] border border-zinc-200/80 bg-gradient-to-br from-white via-zinc-50/90 to-accent/[0.06] p-6 shadow-[0_20px_50px_-24px_rgba(0,0,0,0.12)] dark:border-zinc-600/50 dark:from-zinc-900 dark:via-zinc-900 dark:to-accent/[0.08] sm:rounded-[2rem] sm:p-8"
       aria-labelledby={headingId}
     >
-      <h2 id={headingId} className="font-display text-base font-bold uppercase tracking-wide text-accent">
-        Going or interested?
-      </h2>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-        Tap if you plan to ride or you&apos;re still deciding — it helps others see what&apos;s shaping up. Tell mates
-        with share (Facebook or your phone&apos;s apps).
-      </p>
-
-      <div className="mt-4 flex flex-col gap-3 sm:flex-row" role="group" aria-label="RSVP">
-        <button
-          type="button"
-          disabled={busy !== null}
-          aria-pressed={selected === "going"}
-          onClick={() => onPick("going")}
-          className={`${btnBase} ${selected === "going" ? btnActive : btnIdle} disabled:opacity-60`}
+      <div
+        className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-accent/10 blur-3xl dark:bg-accent/15"
+        aria-hidden
+      />
+      <div className="relative">
+        <h2
+          id={headingId}
+          className="font-display text-lg font-bold tracking-tight text-ink dark:text-zinc-100 sm:text-xl"
         >
-          <span className="font-display text-xs font-bold uppercase tracking-wide sm:text-sm">I&apos;m going</span>
-          <span
-            className={`tabular-nums text-xs ${selected === "going" ? "text-[rgb(var(--color-on-accent))]/90" : "text-zinc-500 dark:text-zinc-400"}`}
-          >
-            {going} {going === 1 ? "person" : "people"}
-          </span>
-        </button>
-        <button
-          type="button"
-          disabled={busy !== null}
-          aria-pressed={selected === "interested"}
-          onClick={() => onPick("interested")}
-          className={`${btnBase} ${selected === "interested" ? btnActive : btnIdle} disabled:opacity-60`}
-        >
-          <span className="font-display text-xs font-bold uppercase tracking-wide sm:text-sm">I&apos;m interested</span>
-          <span
-            className={`tabular-nums text-xs ${selected === "interested" ? "text-[rgb(var(--color-on-accent))]/90" : "text-zinc-500 dark:text-zinc-400"}`}
-          >
-            {interested} {interested === 1 ? "person" : "people"}
-          </span>
-        </button>
-      </div>
+          Who&apos;s coming?
+        </h2>
+        <p className="mt-2 max-w-md text-[0.9375rem] leading-relaxed text-zinc-600 dark:text-zinc-400">
+          Tap if you&apos;re planning to ride or still weighing it up — everyone sees the same totals. Share the event
+          with mates when you&apos;re ready.
+        </p>
+        <p className="mt-2 text-xs leading-snug text-zinc-500 dark:text-zinc-500">
+          Your choice is remembered on <strong className="font-medium text-zinc-600 dark:text-zinc-400">this device</strong>{" "}
+          only (so another browser can add its own tap — that&apos;s normal).
+        </p>
 
-      <div className="relative mt-5" ref={shareWrapRef}>
-        <button
-          type="button"
-          onClick={() => void handleSharePrimaryClick()}
-          className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm font-semibold text-ink transition hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800 sm:w-auto"
-        >
-          <ShareIcon />
-          Share this event
-        </button>
-
-        {shareOpen ? (
-          <div
-            className="absolute left-0 right-0 top-full z-10 mt-2 rounded-xl border border-zinc-200 bg-white p-3 shadow-lg dark:border-zinc-600 dark:bg-zinc-900 sm:left-auto sm:right-0 sm:min-w-[240px]"
-            role="menu"
-            aria-label="Share options"
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:gap-4" role="group" aria-label="RSVP">
+          <button
+            type="button"
+            disabled={busy !== null}
+            aria-pressed={selected === "going"}
+            onClick={() => onPick("going")}
+            className={`${btnBase} ${selected === "going" ? btnActive : btnIdle} disabled:opacity-60`}
           >
-            <p className="mb-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">Share via</p>
-            <div className="flex flex-col gap-2">
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  void onCopyLink();
-                }}
-                className="rounded-lg border border-zinc-200 px-3 py-2 text-left text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-              >
-                {copyDone ? "Link copied" : "Copy link"}
-              </button>
-              <a
-                href={facebookShareUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                role="menuitem"
-                className="rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium text-accent no-underline hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-                onClick={(e) => {
-                  if (!eventUrl) e.preventDefault();
-                  setShareOpen(false);
-                }}
-              >
-                Facebook
-              </a>
+            <span className="font-display text-sm font-bold tracking-wide">I&apos;m going</span>
+            <span
+              className={`tabular-nums text-sm ${selected === "going" ? "text-[rgb(var(--color-on-accent))]/90" : "text-zinc-500 group-hover:text-zinc-600 dark:text-zinc-400 dark:group-hover:text-zinc-300"}`}
+            >
+              {going} {going === 1 ? "person" : "people"}
+            </span>
+          </button>
+          <button
+            type="button"
+            disabled={busy !== null}
+            aria-pressed={selected === "interested"}
+            onClick={() => onPick("interested")}
+            className={`${btnBase} ${selected === "interested" ? btnActive : btnIdle} disabled:opacity-60`}
+          >
+            <span className="font-display text-sm font-bold tracking-wide">I&apos;m interested</span>
+            <span
+              className={`tabular-nums text-sm ${selected === "interested" ? "text-[rgb(var(--color-on-accent))]/90" : "text-zinc-500 group-hover:text-zinc-600 dark:text-zinc-400 dark:group-hover:text-zinc-300"}`}
+            >
+              {interested} {interested === 1 ? "person" : "people"}
+            </span>
+          </button>
+        </div>
+
+        <div className="relative mt-6" ref={shareWrapRef}>
+          <button
+            type="button"
+            onClick={() => void handleSharePrimaryClick()}
+            className="inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl border border-zinc-200/90 bg-white/90 px-5 py-3.5 text-[0.9375rem] font-semibold text-ink shadow-sm backdrop-blur-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md dark:border-zinc-600 dark:bg-zinc-800/90 dark:text-zinc-100 dark:hover:border-zinc-500 sm:w-auto"
+          >
+            <ShareIcon />
+            Share this event
+          </button>
+
+          {shareOpen ? (
+            <div
+              className="absolute left-0 right-0 top-full z-10 mt-3 rounded-2xl border border-zinc-200/90 bg-white p-4 shadow-xl dark:border-zinc-600 dark:bg-zinc-900 sm:left-auto sm:right-0 sm:min-w-[260px]"
+              role="menu"
+              aria-label="Share options"
+            >
+              <p className="mb-3 text-xs font-medium text-zinc-500 dark:text-zinc-400">Share via</p>
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    void onCopyLink();
+                  }}
+                  className="rounded-xl border border-zinc-200/80 px-4 py-2.5 text-left text-sm font-medium transition hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                >
+                  {copyDone ? "Link copied" : "Copy link"}
+                </button>
+                <a
+                  href={facebookShareUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  role="menuitem"
+                  className="rounded-xl border border-zinc-200/80 px-4 py-2.5 text-sm font-medium text-accent no-underline transition hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                  onClick={(e) => {
+                    if (!eventUrl) e.preventDefault();
+                    setShareOpen(false);
+                  }}
+                >
+                  Facebook
+                </a>
+              </div>
             </div>
-          </div>
+          ) : null}
+        </div>
+
+        {err ? (
+          <p className="mt-4 text-sm text-red-600 dark:text-red-400" role="alert">
+            {err}
+          </p>
         ) : null}
       </div>
-
-      {err ? (
-        <p className="mt-3 text-sm text-red-600 dark:text-red-400" role="alert">
-          {err}
-        </p>
-      ) : null}
     </section>
   );
 }
