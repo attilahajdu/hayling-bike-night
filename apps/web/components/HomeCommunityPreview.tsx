@@ -104,6 +104,32 @@ export function HomeCommunityPreview({ items }: { items: Item[] }) {
     }
   }
 
+  async function toggleLikeForId(photoId: number) {
+    const key = `hbn-photo-liked-${photoId}`;
+    const liked = likedIds.includes(photoId);
+    const nextLiked = liked ? likedIds.filter((id) => id !== photoId) : [...likedIds, photoId];
+    const current = likeCounts[photoId] ?? 0;
+    const optimistic = liked ? Math.max(0, current - 1) : current + 1;
+    setLikedIds(nextLiked);
+    window.localStorage.setItem(key, liked ? "0" : "1");
+    setLikeCounts((prev) => ({ ...prev, [photoId]: optimistic }));
+
+    try {
+      const res = await fetch("/api/photo-likes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photoId, delta: liked ? -1 : 1 }),
+      });
+      const json = (await res.json().catch(() => null)) as { likeCount?: number } | null;
+      if (!res.ok || typeof json?.likeCount !== "number") throw new Error("like-update-failed");
+      setLikeCounts((prev) => ({ ...prev, [photoId]: Math.max(0, Number(json.likeCount) || 0) }));
+    } catch {
+      setLikedIds((prev) => (liked ? [...prev, photoId] : prev.filter((id) => id !== photoId)));
+      window.localStorage.setItem(key, liked ? "1" : "0");
+      setLikeCounts((prev) => ({ ...prev, [photoId]: current }));
+    }
+  }
+
   async function shareActive() {
     if (!active) return;
     const shareUrl =
@@ -148,11 +174,35 @@ export function HomeCommunityPreview({ items }: { items: Item[] }) {
             key={item.id}
             className="overflow-hidden rounded-xl border border-stone/50 bg-white shadow-sm ring-1 ring-black/[0.03] dark:border-zinc-700 dark:bg-[rgb(var(--color-card))] dark:ring-0"
           >
-            <button type="button" className="block w-full text-left" onClick={() => setActivePhotoId(item.id)}>
+            <button
+              type="button"
+              className="block w-full text-left"
+              onClick={() => setActivePhotoId(item.id)}
+              aria-label={`Open community photo ${item.id}`}
+              title={`Open photo ${item.id}`}
+            >
               <div className="aspect-square bg-zinc-200">
                 <img src={item.src} alt={item.alt} className="h-full w-full object-cover" loading="lazy" />
               </div>
             </button>
+            <div className="flex items-center justify-between gap-2 border-t border-zinc-200/80 px-2 py-2 dark:border-zinc-700/80">
+              <button
+                type="button"
+                className="text-xs font-semibold text-accent no-underline"
+                onClick={() => setActivePhotoId(item.id)}
+                aria-label={`Tap to open photo by ${item.alt}`}
+              >
+                Open
+              </button>
+              <button
+                type="button"
+                className="text-xs font-semibold text-zinc-700 dark:text-zinc-200"
+                onClick={() => toggleLikeForId(item.id)}
+                aria-label={`${likedIds.includes(item.id) ? "Unlike" : "Like"} community photo ${item.id}`}
+              >
+                {likedIds.includes(item.id) ? "Liked" : "Like"} ({likeCounts[item.id] ?? 0})
+              </button>
+            </div>
           </article>
         ))}
       </div>

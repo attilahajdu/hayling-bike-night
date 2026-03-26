@@ -26,6 +26,9 @@ export function EventCard({
   const d = new Date(attrs.dateStart);
   const kind = eventKindLabel(attrs);
   const isBikeNight = kind === "Bike Night";
+  const end = new Date(d.getTime() + 2 * 60 * 60 * 1000);
+  const toCalendarUtc = (value: Date) => value.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+  const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(attrs.title)}&dates=${toCalendarUtc(d)}/${toCalendarUtc(end)}&details=${encodeURIComponent("Hayling Bike Night ride or meetup")}&location=${encodeURIComponent(attrs.location)}`;
 
   return (
     <article
@@ -92,14 +95,25 @@ export function EventCard({
         {attrs.goingCount ?? 0} going · {attrs.interestedCount ?? 0} interested
       </p>
       <div className="mt-auto pt-3">
-        <Link
-          href={href}
-          className={`inline-flex text-sm font-semibold no-underline transition hover:no-underline ${
-            featured ? "text-accent" : "text-accent"
-          }`}
-        >
-          Details →
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href={href}
+            className={`inline-flex text-sm font-semibold no-underline transition hover:no-underline ${
+              featured ? "text-accent" : "text-accent"
+            }`}
+          >
+            Details →
+          </Link>
+          <a
+            href={calendarUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex text-sm font-semibold text-zinc-700 no-underline transition hover:text-zinc-900 hover:no-underline dark:text-zinc-300 dark:hover:text-zinc-100"
+            aria-label={`Add ${attrs.title} to calendar`}
+          >
+            Add to calendar
+          </a>
+        </div>
       </div>
     </article>
   );

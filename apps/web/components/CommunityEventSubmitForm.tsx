@@ -215,6 +215,9 @@ export function CommunityEventSubmitForm() {
             maxLength={180}
             className="mt-1 h-11 w-full rounded-lg border border-zinc-300 bg-white px-3 text-ink dark:border-zinc-600 dark:bg-zinc-950"
           />
+          <span className="mt-1 block text-xs text-zinc-500 dark:text-zinc-400">
+            We won&apos;t publish your email address.
+          </span>
         </label>
       </div>
 

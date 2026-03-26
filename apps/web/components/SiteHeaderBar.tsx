@@ -86,11 +86,17 @@ export function SiteHeaderBar({ facebookUrl, dateLine, forecast, nextMeetHref }:
           aria-label="Main"
           className="hidden min-w-0 flex-1 items-center justify-start gap-x-6 pl-4 md:flex lg:gap-x-7 lg:pl-5"
         >
+          <Link href="/" className={desktopLinkClass}>
+            Home
+          </Link>
           <Link href="/gallery" className={desktopLinkClass}>
             Galleries
           </Link>
           <Link href="/events" className={desktopLinkClass}>
             Rides and meetups
+          </Link>
+          <Link href="/#find-us" className={desktopLinkClass}>
+            Find us
           </Link>
           <Link href="/events#submit-event" className={desktopLinkClass}>
             Suggest a ride or meetup

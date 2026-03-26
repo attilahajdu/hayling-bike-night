@@ -129,39 +129,66 @@ export default async function HomePage() {
           <div>
             <h3 className="font-display font-bold text-3xl uppercase text-ink">Pro Photographers&apos; Latest Galleries</h3>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Official photographer albums.</p>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {(() => {
-                const officialCards = official.map((a) => ({
-                  id: `official-${a.id}`,
-                  title: a.attributes.title,
-                  albumUrl: a.attributes.albumUrl,
-                  websiteUrl: a.attributes.shopUrl ?? a.attributes.albumUrl,
-                  coverImageUrl: a.attributes.coverImageUrl ?? "/images/ridebikes.png",
-                  photographer: a.attributes.photographer?.data?.attributes.name ?? a.attributes.submittedByName ?? "Photographer",
-                  dateLabel: "21 August 2025",
-                }));
-                const cards = [...officialCards];
-                if (cards.length < 4) {
-                  cards.push(...starterPros.slice(0, 4 - cards.length));
-                }
-                return cards.slice(0, 4);
-              })().map((p) => (
-                <article key={p.id} className="card overflow-hidden">
-                  <div className="aspect-[4/3] bg-zinc-200">
-                    <img src={p.coverImageUrl} alt={p.title} className="h-full w-full object-cover" loading="lazy" />
-                  </div>
-                  <div className="p-3">
-                    <p className="font-display font-bold text-xl uppercase text-ink">{p.title}</p>
-                    <p className="text-xs uppercase tracking-wide text-zinc-500">{p.photographer}</p>
-                    <p className="text-xs uppercase tracking-wide text-warm">{p.dateLabel}</p>
-                    <div className="mt-2 flex gap-3 text-sm">
-                      <Link href={p.albumUrl} target="_blank" className="text-accent">Gallery →</Link>
-                      <Link href={p.websiteUrl} target="_blank" className="text-accent">Website →</Link>
+            {(() => {
+              const officialCards = official.map((a) => ({
+                id: `official-${a.id}`,
+                title: a.attributes.title,
+                albumUrl: a.attributes.albumUrl,
+                websiteUrl: a.attributes.shopUrl ?? a.attributes.albumUrl,
+                coverImageUrl: a.attributes.coverImageUrl ?? "/images/ridebikes.png",
+                photographer: a.attributes.photographer?.data?.attributes.name ?? a.attributes.submittedByName ?? "Photographer",
+                dateLabel: "21 August 2025",
+              }));
+              const cards = [...officialCards];
+              if (cards.length < 4) {
+                cards.push(...starterPros.slice(0, 4 - cards.length));
+              }
+              const displayCards = cards.slice(0, 4);
+              const mobileCard = displayCards[0];
+              return (
+                <>
+                  {mobileCard ? (
+                    <div className="mt-4 sm:hidden">
+                      <article className="card overflow-hidden">
+                        <div className="aspect-[4/3] bg-zinc-200">
+                          <img src={mobileCard.coverImageUrl} alt={mobileCard.title} className="h-full w-full object-cover" loading="lazy" />
+                        </div>
+                        <div className="p-3">
+                          <p className="font-display font-bold text-xl uppercase text-ink">{mobileCard.title}</p>
+                          <p className="text-xs uppercase tracking-wide text-zinc-500">{mobileCard.photographer}</p>
+                          <p className="text-xs uppercase tracking-wide text-warm">{mobileCard.dateLabel}</p>
+                          <div className="mt-2 flex gap-3 text-sm">
+                            <Link href={mobileCard.albumUrl} target="_blank" className="text-accent">Gallery →</Link>
+                            <Link href={mobileCard.websiteUrl} target="_blank" className="text-accent">Website →</Link>
+                          </div>
+                        </div>
+                      </article>
+                      <Link href="/gallery#pro-galleries" className="mt-3 inline-flex text-sm font-semibold text-accent no-underline hover:no-underline">
+                        View all pro galleries →
+                      </Link>
                     </div>
+                  ) : null}
+                  <div className="mt-4 hidden gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-4">
+                    {displayCards.map((p) => (
+                      <article key={p.id} className="card overflow-hidden">
+                        <div className="aspect-[4/3] bg-zinc-200">
+                          <img src={p.coverImageUrl} alt={p.title} className="h-full w-full object-cover" loading="lazy" />
+                        </div>
+                        <div className="p-3">
+                          <p className="font-display font-bold text-xl uppercase text-ink">{p.title}</p>
+                          <p className="text-xs uppercase tracking-wide text-zinc-500">{p.photographer}</p>
+                          <p className="text-xs uppercase tracking-wide text-warm">{p.dateLabel}</p>
+                          <div className="mt-2 flex gap-3 text-sm">
+                            <Link href={p.albumUrl} target="_blank" className="text-accent">Gallery →</Link>
+                            <Link href={p.websiteUrl} target="_blank" className="text-accent">Website →</Link>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
                   </div>
-                </article>
-              ))}
-            </div>
+                </>
+              );
+            })()}
           </div>
           </div>
         </section>
@@ -230,10 +257,20 @@ export default async function HomePage() {
               <div className="pl-2 sm:pl-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Thursday nights</p>
                 <h2 className="mt-2 section-title">Shot something good on Thursday?</h2>
-                <p className="mt-3 max-w-2xl text-base leading-relaxed text-zinc-700 dark:text-zinc-300">
-                  Add it to the community gallery so everyone can relive the meet. Quick upload, no account faff — just
-                  your best frame from the car park.
-                </p>
+                <details className="group mt-4 max-w-2xl rounded-xl border border-zinc-200 bg-white/80 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-950/40">
+                  <summary className="cursor-pointer list-none font-display text-sm font-bold uppercase tracking-wide text-accent outline-none marker:content-none [&::-webkit-details-marker]:hidden">
+                    <span className="inline-flex items-center gap-2">
+                      How it works
+                      <span className="text-zinc-400 transition group-open:rotate-180" aria-hidden>
+                        ▼
+                      </span>
+                    </span>
+                  </summary>
+                  <p className="mt-3 border-t border-zinc-200 pt-3 text-sm leading-relaxed text-zinc-700 dark:border-zinc-700 dark:text-zinc-300">
+                    Add your best frame from the car park so everyone can relive the meet. It&apos;s a quick upload with no
+                    account needed.
+                  </p>
+                </details>
                 <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
                   <Link href="/upload" className="btn-primary">
                     Upload your shots →
@@ -280,6 +317,10 @@ export default async function HomePage() {
                 </Link>
               </div>
             </div>
+            <div className="mb-2 flex items-center justify-between gap-2 md:hidden">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500 dark:text-zinc-400">Swipe for more</p>
+              <p className="text-sm text-accent" aria-hidden>→</p>
+            </div>
             <div className="flex gap-4 overflow-x-auto pb-3 pt-1 [scrollbar-width:thin]">
               {displayEvents.length ? (
                 displayEvents.map((row, idx) => (
@@ -307,6 +348,11 @@ export default async function HomePage() {
                   </p>
                 </div>
               )}
+            </div>
+            <div className="mt-1 flex items-center gap-1.5 md:hidden" aria-hidden>
+              <span className="h-1.5 w-5 rounded-full bg-accent/70" />
+              <span className="h-1.5 w-2 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+              <span className="h-1.5 w-2 rounded-full bg-zinc-300 dark:bg-zinc-700" />
             </div>
           </div>
         </section>
