@@ -40,7 +40,13 @@ export function strapiMediaUrl(url: string | null | undefined): string | null {
       const path = parsed.pathname;
       if (!path.startsWith("/uploads/")) return raw;
       if (remote) return uploadsPathToProxy(path) ?? raw;
-      return `${strapiPublicOrigin()}${path}${parsed.search}`;
+      // Local Strapi in .env but DB rows still carry absolute production `/uploads/` URLs — keep
+      // that origin. Rewriting to localhost made every thumbnail request hit a missing local disk.
+      const configured = strapiPublicOrigin();
+      if (parsed.origin === configured) {
+        return `${configured}${path}${parsed.search}`;
+      }
+      return `${parsed.origin}${path}${parsed.search}`;
     } catch {
       return raw;
     }
