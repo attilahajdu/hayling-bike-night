@@ -11,10 +11,9 @@ type EventItem = {
 };
 
 type KindFilter = "all" | "official" | "community";
-const activePillClass =
-  "group relative inline-flex items-center overflow-hidden rounded-full border border-blue-300/70 bg-zinc-950 px-4 py-2 font-semibold text-zinc-100 no-underline shadow-[0_0_0_1px_rgba(96,165,250,0.35),0_10px_24px_rgba(2,6,23,0.45)] transition hover:-translate-y-0.5 hover:border-blue-200/80 hover:text-zinc-100 hover:no-underline hover:shadow-[0_0_0_1px_rgba(147,197,253,0.45),0_14px_28px_rgba(2,6,23,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50";
-const inactivePillClass =
-  "inline-flex items-center rounded-full border border-zinc-300 bg-white px-4 py-2 font-medium text-zinc-700 no-underline hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-700 hover:no-underline dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-200";
+
+const selectClass =
+  "w-full appearance-none rounded-full border border-zinc-300 bg-white px-4 py-2 pr-10 text-sm font-semibold uppercase tracking-[0.08em] text-zinc-700 focus:outline-none focus:ring-2 focus:ring-accent/30 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100";
 
 function monthKeyFromIso(iso: string): string {
   const d = new Date(iso);
@@ -39,6 +38,7 @@ export function EventsFilterList({ items }: { items: EventItem[] }) {
       seen.add(key);
       opts.push({ key, label: monthLabelFromKey(key) });
     }
+    opts.sort((a, b) => a.key.localeCompare(b.key));
     return opts;
   }, [items]);
 
@@ -60,93 +60,64 @@ export function EventsFilterList({ items }: { items: EventItem[] }) {
 
   return (
     <>
-      <div className="mt-6 space-y-4 rounded-2xl border border-zinc-200 bg-white/80 p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">Filter by month</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setSelectedMonth("all")}
-              className={selectedMonth === "all" ? activePillClass : inactivePillClass}
-            >
-              {selectedMonth === "all" ? (
-                <>
-                  <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_90%_at_50%_0%,rgba(78,152,255,0.34),transparent_62%)]" />
-                  <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-950/55 via-zinc-900/45 to-zinc-950/90" />
-                  <span className="relative">All</span>
-                </>
-              ) : (
-                "All"
-              )}
-            </button>
-            {monthOptions.map((m) => (
-              <button
-                key={m.key}
-                type="button"
-                onClick={() => setSelectedMonth(m.key)}
-                className={selectedMonth === m.key ? activePillClass : inactivePillClass}
+      <div className="mt-6 rounded-2xl border border-zinc-200 bg-white/80 p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">Month</p>
+            <div className="relative mt-2">
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                aria-label="Filter by month"
+                className={selectClass}
               >
-                {selectedMonth === m.key ? (
-                  <>
-                    <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_90%_at_50%_0%,rgba(78,152,255,0.34),transparent_62%)]" />
-                    <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-950/55 via-zinc-900/45 to-zinc-950/90" />
-                    <span className="relative">{m.label}</span>
-                  </>
-                ) : (
-                  m.label
-                )}
-              </button>
-            ))}
+                <option value="all">All</option>
+                {monthOptions.map((m) => (
+                  <option key={m.key} value={m.key}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+              <svg
+                className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 dark:text-zinc-300"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
           </div>
-        </div>
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">Type</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setKindFilter("all")}
-              className={kindFilter === "all" ? activePillClass : inactivePillClass}
-            >
-              {kindFilter === "all" ? (
-                <>
-                  <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_90%_at_50%_0%,rgba(78,152,255,0.34),transparent_62%)]" />
-                  <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-950/55 via-zinc-900/45 to-zinc-950/90" />
-                  <span className="relative">All</span>
-                </>
-              ) : (
-                "All"
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setKindFilter("official")}
-              className={kindFilter === "official" ? activePillClass : inactivePillClass}
-            >
-              {kindFilter === "official" ? (
-                <>
-                  <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_90%_at_50%_0%,rgba(78,152,255,0.34),transparent_62%)]" />
-                  <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-950/55 via-zinc-900/45 to-zinc-950/90" />
-                  <span className="relative">Official</span>
-                </>
-              ) : (
-                "Official"
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setKindFilter("community")}
-              className={kindFilter === "community" ? activePillClass : inactivePillClass}
-            >
-              {kindFilter === "community" ? (
-                <>
-                  <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_90%_at_50%_0%,rgba(78,152,255,0.34),transparent_62%)]" />
-                  <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-950/55 via-zinc-900/45 to-zinc-950/90" />
-                  <span className="relative">Community</span>
-                </>
-              ) : (
-                "Community"
-              )}
-            </button>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">Type</p>
+            <div className="relative mt-2">
+              <select
+                value={kindFilter}
+                onChange={(e) => setKindFilter(e.target.value as KindFilter)}
+                aria-label="Filter by type"
+                className={selectClass}
+              >
+                <option value="all">All</option>
+                <option value="official">Official</option>
+                <option value="community">Community</option>
+              </select>
+              <svg
+                className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 dark:text-zinc-300"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
           </div>
         </div>
       </div>

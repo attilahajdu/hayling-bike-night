@@ -42,7 +42,7 @@ export function EventCard({
       }`}
     >
       <p
-        className={`inline-flex w-fit rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${
+        className={`inline-flex w-fit rounded-md border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${
           isBikeNight
             ? "border-accent/50 bg-accent/20 text-accent dark:border-accent/60 dark:bg-accent/25"
             : "border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-200"
@@ -51,7 +51,7 @@ export function EventCard({
         {kind === "Bike Night" ? "Official Bike Night" : "Community"}
       </p>
       {featuredLabel ? (
-        <span className="absolute right-3 top-3 rounded-full border border-accent/50 bg-accent/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-accent">
+        <span className="absolute right-3 top-3 rounded-md border border-accent/50 bg-accent/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-accent">
           {featuredLabel}
         </span>
       ) : null}

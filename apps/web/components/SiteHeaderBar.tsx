@@ -13,7 +13,6 @@ const drawerLinkClass =
   "flex min-h-[52px] items-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 font-display text-base font-bold uppercase tracking-wide text-zinc-100 no-underline transition hover:border-blue-300/45 hover:bg-blue-500/15";
 
 type Props = {
-  facebookUrl: string;
   dateLine: string;
   forecast: { condition: string; highC: number; lowC: number } | null;
   nextMeetHref: string;
@@ -44,7 +43,7 @@ function MenuIcon({ open }: { open: boolean }) {
   );
 }
 
-export function SiteHeaderBar({ facebookUrl, dateLine, forecast, nextMeetHref }: Props) {
+export function SiteHeaderBar({ dateLine, forecast, nextMeetHref }: Props) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
@@ -101,14 +100,6 @@ export function SiteHeaderBar({ facebookUrl, dateLine, forecast, nextMeetHref }:
           <Link href="/events#submit-event" className={desktopLinkClass}>
             Suggest a ride or meetup
           </Link>
-          <a
-            href={facebookUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={desktopLinkClass}
-          >
-            Facebook
-          </a>
         </nav>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
@@ -183,15 +174,6 @@ export function SiteHeaderBar({ facebookUrl, dateLine, forecast, nextMeetHref }:
               <Link href="/#find-us" className={drawerLinkClass} onClick={close}>
                 Find us
               </Link>
-              <a
-                href={facebookUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={drawerLinkClass}
-                onClick={close}
-              >
-                Facebook
-              </a>
               <Link href="/upload" className={drawerLinkClass} onClick={close}>
                 Upload photos
               </Link>

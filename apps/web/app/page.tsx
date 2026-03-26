@@ -1,10 +1,8 @@
 import Link from "next/link";
 import { EventCard } from "@/components/EventCard";
-import { FacebookFeedSection } from "@/components/FacebookFeedSection";
 import { Hero } from "@/components/Hero";
 import { HomeCommunityPreview } from "@/components/HomeCommunityPreview";
 import { LandingShowcaseStrip, type ShowcaseItem } from "@/components/LandingShowcaseStrip";
-import { getFacebookMedia } from "@/lib/facebook";
 import { mergeOfficialAlbumsForSpotlight } from "@/lib/mergeOfficialAlbums";
 import { getEvents, getGalleryEntries, getOfficialAlbums, getPhotos, getPublishedCommunityPhotoTotal } from "@/lib/strapi";
 import { getForecastForDate } from "@/lib/weather";
@@ -17,19 +15,13 @@ function statNumber(value: number) {
 }
 
 export default async function HomePage() {
-  const [events, galleryEntries, facebookMedia] = await Promise.all([
+  const [events, galleryEntries] = await Promise.all([
     getEvents({ upcoming: true }),
     getGalleryEntries(),
-    getFacebookMedia(12),
   ]);
 
   const latestEntry = galleryEntries?.data?.[0] ?? null;
-  const facebookShowcase: ShowcaseItem[] = facebookMedia.map((src, idx) => ({
-    id: `fb-${idx}`,
-    src,
-    source: "facebook",
-    uploader: "haylingbikenight",
-  }));
+  const facebookShowcase: ShowcaseItem[] = [];
   const apiEvents = (events?.data ?? []).slice(0, 8);
   const displayEvents = apiEvents;
 
@@ -364,8 +356,6 @@ export default async function HomePage() {
           </div>
         </section>
       </div>
-
-      <FacebookFeedSection />
 
       <section id="find-us" className="bg-surface py-20">
         <div className="shell">
