@@ -181,6 +181,7 @@ export type PhotoAttrs = {
   bikeColour?: string | null;
   consentConfirmed?: boolean | null;
   moderationReason?: string | null;
+  likeCount?: number | null;
   event?: { data: { id: number; attributes: EventAttrs } | null };
   photographer?: { data: { id: number; attributes: PhotographerAttrs } | null };
   galleryEntry?: { data: { id: number; attributes: GalleryEntryAttrs } | null };

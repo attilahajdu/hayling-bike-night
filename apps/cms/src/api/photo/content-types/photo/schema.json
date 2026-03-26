@@ -46,6 +46,7 @@
     "bikeColour": { "type": "string" },
     "consentConfirmed": { "type": "boolean", "default": false },
     "moderationReason": { "type": "text" },
+    "likeCount": { "type": "integer", "default": 0 },
     "event": {
       "type": "relation",
       "relation": "manyToOne",

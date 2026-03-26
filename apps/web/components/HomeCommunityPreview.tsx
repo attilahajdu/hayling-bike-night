@@ -16,14 +16,14 @@ export function HomeCommunityPreview({ items }: { items: Item[] }) {
     if (!ready) return items;
     const copy = [...items].map((it) => ({
       ...it,
-      likes: readLocalLikeCount(it.id),
+      likes: likeCounts[it.id] ?? readLocalLikeCount(it.id),
     }));
     copy.sort((a, b) => {
       if (b.likes !== a.likes) return b.likes - a.likes;
       return b.id - a.id;
     });
     return copy;
-  }, [items, ready]);
+  }, [items, ready, likeCounts]);
 
   useEffect(() => {
     setReady(true);
@@ -41,6 +41,24 @@ export function HomeCommunityPreview({ items }: { items: Item[] }) {
       initialCounts[it.id] = Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
     }
     setLikeCounts(initialCounts);
+
+    const ids = items.map((it) => it.id).join(",");
+    void fetch(`/api/photo-likes?ids=${encodeURIComponent(ids)}`, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json: { counts?: Record<string, number> } | null) => {
+        const counts = json?.counts ?? {};
+        setLikeCounts((prev) => {
+          const next = { ...prev };
+          for (const [id, count] of Object.entries(counts)) {
+            const n = Number(count);
+            next[Number(id)] = Number.isFinite(n) && n > 0 ? n : 0;
+          }
+          return next;
+        });
+      })
+      .catch(() => {
+        // Keep local fallback counts when API is unavailable.
+      });
   }, [items]);
 
   const activeIndex = activePhotoId === null ? -1 : sorted.findIndex((item) => item.id === activePhotoId);
@@ -58,18 +76,32 @@ export function HomeCommunityPreview({ items }: { items: Item[] }) {
     setActivePhotoId(sorted[next]?.id ?? null);
   }
 
-  function toggleLike() {
+  async function toggleLike() {
     if (!active) return;
     const key = `hbn-photo-liked-${active.id}`;
-    const countKey = `hbn-photo-like-count-${active.id}`;
     const liked = likedIds.includes(active.id);
     const nextLiked = liked ? likedIds.filter((id) => id !== active.id) : [...likedIds, active.id];
+    const current = likeCounts[active.id] ?? 0;
+    const optimistic = liked ? Math.max(0, current - 1) : current + 1;
     setLikedIds(nextLiked);
     window.localStorage.setItem(key, liked ? "0" : "1");
-    const current = likeCounts[active.id] ?? 0;
-    const nextCount = liked ? Math.max(0, current - 1) : current + 1;
-    setLikeCounts((prev) => ({ ...prev, [active.id]: nextCount }));
-    window.localStorage.setItem(countKey, String(nextCount));
+    setLikeCounts((prev) => ({ ...prev, [active.id]: optimistic }));
+
+    try {
+      const res = await fetch("/api/photo-likes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photoId: active.id, delta: liked ? -1 : 1 }),
+      });
+      const json = (await res.json().catch(() => null)) as { likeCount?: number } | null;
+      if (!res.ok || typeof json?.likeCount !== "number") throw new Error("like-update-failed");
+      setLikeCounts((prev) => ({ ...prev, [active.id]: Math.max(0, Number(json.likeCount) || 0) }));
+    } catch {
+      // Revert optimistic state when server update fails.
+      setLikedIds((prev) => (liked ? [...prev, active.id] : prev.filter((id) => id !== active.id)));
+      window.localStorage.setItem(key, liked ? "1" : "0");
+      setLikeCounts((prev) => ({ ...prev, [active.id]: current }));
+    }
   }
 
   async function shareActive() {

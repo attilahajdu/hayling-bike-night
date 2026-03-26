@@ -100,11 +100,28 @@ export function GalleryGrid({
     setLikedIds(initialLiked);
     const initialCounts: Record<number, number> = {};
     for (const it of items) {
-      const raw = window.localStorage.getItem(`hbn-photo-like-count-${it.id}`);
-      const parsed = raw ? Number(raw) : 0;
-      initialCounts[it.id] = Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+      const seeded = Number(it.attributes.likeCount ?? 0);
+      initialCounts[it.id] = Number.isFinite(seeded) && seeded > 0 ? seeded : 0;
     }
     setLikeCounts(initialCounts);
+
+    const ids = items.map((it) => it.id).join(",");
+    void fetch(`/api/photo-likes?ids=${encodeURIComponent(ids)}`, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json: { counts?: Record<string, number> } | null) => {
+        const counts = json?.counts ?? {};
+        setLikeCounts((prev) => {
+          const next = { ...prev };
+          for (const [id, count] of Object.entries(counts)) {
+            const n = Number(count);
+            next[Number(id)] = Number.isFinite(n) && n > 0 ? n : 0;
+          }
+          return next;
+        });
+      })
+      .catch(() => {
+        // Keep seeded values when API is unavailable.
+      });
   }, [items]);
 
   useEffect(() => {
@@ -122,18 +139,32 @@ export function GalleryGrid({
     return <p className="text-zinc-500 dark:text-zinc-400">No photos match these filters yet.</p>;
   }
 
-  function toggleLike() {
+  async function toggleLike() {
     if (!activeId) return;
     const key = `hbn-photo-liked-${activeId}`;
-    const countKey = `hbn-photo-like-count-${activeId}`;
     const liked = likedIds.includes(activeId);
     const nextLiked = liked ? likedIds.filter((id) => id !== activeId) : [...likedIds, activeId];
+    const current = likeCounts[activeId] ?? 0;
+    const optimistic = liked ? Math.max(0, current - 1) : current + 1;
     setLikedIds(nextLiked);
     window.localStorage.setItem(key, liked ? "0" : "1");
-    const current = likeCounts[activeId] ?? 0;
-    const nextCount = liked ? Math.max(0, current - 1) : current + 1;
-    setLikeCounts((prev) => ({ ...prev, [activeId]: nextCount }));
-    window.localStorage.setItem(countKey, String(nextCount));
+    setLikeCounts((prev) => ({ ...prev, [activeId]: optimistic }));
+
+    try {
+      const res = await fetch("/api/photo-likes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photoId: activeId, delta: liked ? -1 : 1 }),
+      });
+      const json = (await res.json().catch(() => null)) as { likeCount?: number } | null;
+      if (!res.ok || typeof json?.likeCount !== "number") throw new Error("like-update-failed");
+      setLikeCounts((prev) => ({ ...prev, [activeId]: Math.max(0, Number(json.likeCount) || 0) }));
+    } catch {
+      // Revert optimistic state when server update fails.
+      setLikedIds((prev) => (liked ? [...prev, activeId] : prev.filter((id) => id !== activeId)));
+      window.localStorage.setItem(key, liked ? "1" : "0");
+      setLikeCounts((prev) => ({ ...prev, [activeId]: current }));
+    }
   }
 
   async function shareActive() {
