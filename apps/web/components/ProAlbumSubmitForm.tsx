@@ -23,13 +23,11 @@ export function ProAlbumSubmitForm() {
       const code = url.searchParams.get("code");
       if (queued) {
         setStatus("queued");
-        setNote(
-          `Strapi did not save this album (HTTP ${code ?? "?"}). Usually the server API token is missing permission: Official album → create (use a Full access token, or add that scope). A copy was written to apps/web/.local-run/submission-queue/ with the error details — import it manually in Strapi admin if needed.`,
-        );
+        setNote("Thanks — your gallery has been received and is waiting for moderation. It may take a little longer to appear.");
         form.reset();
       } else if (ok) {
         setStatus("ok");
-        setNote("Saved in Strapi as pending — approve it in Strapi (Official album) or on /owner/moderation.");
+        setNote("Thanks — your gallery has been submitted successfully and will appear after moderation.");
         form.reset();
       } else {
         setStatus("error");

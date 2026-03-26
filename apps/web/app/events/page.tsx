@@ -1,5 +1,5 @@
 import { CommunityEventSubmitForm } from "@/components/CommunityEventSubmitForm";
-import { EventCard } from "@/components/EventCard";
+import { EventsFilterList } from "@/components/EventsFilterList";
 import { getDemoUpcomingEvents } from "@/lib/demo-events";
 import { getEvents } from "@/lib/strapi";
 
@@ -65,19 +65,13 @@ export default async function EventsPage() {
             Nothing in the diary yet — check back soon, or suggest a ride or meetup down below.
           </p>
         ) : (
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {displayList.map((e, idx) => (
-              <div key={e.id} className="min-w-0">
-                <EventCard
-                  attrs={e.attributes}
-                  href={`/events/${e.attributes.slug}`}
-                  featured={idx === 0}
-                    featuredLabel={idx === 0 ? "Coming up" : undefined}
-                  wide
-                />
-              </div>
-            ))}
-          </div>
+          <EventsFilterList
+            items={displayList.map((e) => ({
+              id: e.id,
+              attrs: e.attributes,
+              href: `/events/${e.attributes.slug}`,
+            }))}
+          />
         )}
       </section>
 

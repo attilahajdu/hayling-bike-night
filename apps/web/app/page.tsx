@@ -65,46 +65,6 @@ export default async function HomePage() {
       };
     })
     .filter((item): item is Extract<ShowcaseItem, { source: "community" }> => item !== null);
-  const starterPros = [
-    {
-      id: "home-pro-1",
-      title: "Michael Jones-Price Photography",
-      albumUrl:
-        "https://michaeljones-pricephotography.pixieset.com/rykassessionarrivalsonly09001300-3/?fbclid=IwY2xjawQqAUpleHRuA2FlbQIxMQBzcnRjBmFwcF9pZBAyMjIwMzkxNzg4MjAwODkyAAEewQToGTI8mwRx77U20oa4rj5_9_4bkUSJ0bYCx_yS_nGfK5PCVHMzYtiYKbo_aem_oUY4_SyE26bZ-sQJNAAv1A",
-      websiteUrl: "https://michaeljones-pricephotography.pixieset.com",
-      coverImageUrl: "/images/hayling-badge.png",
-      photographer: "Michael Jones-Price",
-      dateLabel: "21 August 2025",
-    },
-    {
-      id: "home-pro-2",
-      title: "The Right Bikes",
-      albumUrl:
-        "https://www.therightbikes.com/?fbclid=IwY2xjawQqAnJleHRuA2FlbQIxMABicmlkETFkdE5RaTJlT1k0R0xSbXlmc3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHk-cnNhYxOlCMYOD_FmP302hjwxZYql-wQ8p2QBRifRdl5Szs21vTAZUpC2n_aem_OLqIvp0tJyJ6ni1wkZ1diA",
-      websiteUrl: "https://www.therightbikes.com",
-      coverImageUrl: "/images/ridebikes.png",
-      photographer: "The Right Bikes",
-      dateLabel: "21 August 2025",
-    },
-    {
-      id: "home-pro-3",
-      title: "Bikes on the Beach Photography",
-      albumUrl: "https://gallery.bikesonthebeachphoto.co.uk/hayling-thursday-latest",
-      websiteUrl: "https://www.bikesonthebeachphoto.co.uk",
-      coverImageUrl: "/images/hayling-beach.jpg",
-      photographer: "Bikes on the Beach Photography",
-      dateLabel: "21 August 2025",
-    },
-    {
-      id: "home-pro-4",
-      title: "1808 Photography",
-      albumUrl: "https://galleries.1808photography.co.uk/hayling-bike-night-weekly",
-      websiteUrl: "https://www.1808photography.co.uk",
-      coverImageUrl: "/images/owner.jpg",
-      photographer: "1808 Photography",
-      dateLabel: "21 August 2025",
-    },
-  ];
   const communityFallback = [
     { id: "home-community-owner", src: "/images/owner.jpg", label: "Community upload · 21 August 2025" },
     { id: "home-community-beach", src: "/images/hayling-beach.jpg", label: "Community upload · 21 August 2025" },
@@ -139,13 +99,17 @@ export default async function HomePage() {
                 photographer: a.attributes.photographer?.data?.attributes.name ?? a.attributes.submittedByName ?? "Photographer",
                 dateLabel: "21 August 2025",
               }));
-              const cards = [...officialCards];
-              if (cards.length < 4) {
-                cards.push(...starterPros.slice(0, 4 - cards.length));
-              }
-              const displayCards = cards.slice(0, 4);
+              const cards = officialCards.slice(0, 4);
+              const displayCards = cards;
               const mobileCards = cards;
               const mobileCard = mobileCards[0];
+              if (cards.length === 0) {
+                return (
+                  <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">
+                    No pro galleries published yet.
+                  </p>
+                );
+              }
               return (
                 <>
                   {mobileCard ? (

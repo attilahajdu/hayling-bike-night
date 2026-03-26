@@ -26,9 +26,10 @@ export function EventCard({
   const d = new Date(attrs.dateStart);
   const kind = eventKindLabel(attrs);
   const isBikeNight = kind === "Bike Night";
-  const end = new Date(d.getTime() + 2 * 60 * 60 * 1000);
-  const toCalendarUtc = (value: Date) => value.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
-  const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(attrs.title)}&dates=${toCalendarUtc(d)}/${toCalendarUtc(end)}&details=${encodeURIComponent("Hayling Bike Night ride or meetup")}&location=${encodeURIComponent(attrs.location)}`;
+  const eventTime = Number.isNaN(d.getTime())
+    ? "Time TBC"
+    : d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  const eventLocation = attrs.location?.trim() || "Location to be confirmed";
 
   return (
     <article
@@ -80,7 +81,7 @@ export function EventCard({
           featured ? "text-zinc-600 dark:text-zinc-300" : "text-zinc-600 dark:text-zinc-400"
         }`}
       >
-        {attrs.location}
+        {eventTime} · {eventLocation}
       </p>
       {showForecast && forecastText ? (
         <p className={`mt-2 text-xs ${featured ? "text-zinc-500 dark:text-zinc-400" : "text-zinc-500"}`}>
@@ -105,13 +106,12 @@ export function EventCard({
             Details →
           </Link>
           <a
-            href={calendarUrl}
-            target="_blank"
-            rel="noreferrer"
+            href={`/api/events/${attrs.slug}/ics`}
+            download
             className="inline-flex text-sm font-semibold text-zinc-700 no-underline transition hover:text-zinc-900 hover:no-underline dark:text-zinc-300 dark:hover:text-zinc-100"
             aria-label={`Add ${attrs.title} to calendar`}
           >
-            Add to calendar
+            Add to calendar (ICS)
           </a>
         </div>
       </div>
