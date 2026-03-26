@@ -52,7 +52,7 @@ export async function POST(req: Request) {
   if (!consent || photoFiles.length === 0) {
     return redirectTo(req, "/upload?error=missing");
   }
-  if (photoFiles.length > 20) {
+  if (photoFiles.length > 10) {
     return redirectTo(req, "/upload?error=too-many");
   }
 

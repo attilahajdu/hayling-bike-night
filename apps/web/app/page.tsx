@@ -144,7 +144,8 @@ export default async function HomePage() {
                 cards.push(...starterPros.slice(0, 4 - cards.length));
               }
               const displayCards = cards.slice(0, 4);
-              const mobileCard = displayCards[0];
+              const mobileCards = cards;
+              const mobileCard = mobileCards[0];
               return (
                 <>
                   {mobileCard ? (
@@ -163,9 +164,37 @@ export default async function HomePage() {
                           </div>
                         </div>
                       </article>
-                      <Link href="/gallery#pro-galleries" className="mt-3 inline-flex text-sm font-semibold text-accent no-underline hover:no-underline">
-                        View all pro galleries →
-                      </Link>
+                      <details className="group mt-3">
+                        <summary className="list-none marker:content-none [&::-webkit-details-marker]:hidden">
+                          <span className="btn-primary w-full justify-center gap-2">
+                            See all pro galleries
+                            <span className="text-[11px] transition group-open:rotate-180" aria-hidden>
+                              ▼
+                            </span>
+                          </span>
+                        </summary>
+                        <div className="mt-3 space-y-3">
+                          {mobileCards.slice(1).map((p) => (
+                            <article key={`mobile-${p.id}`} className="card overflow-hidden">
+                              <div className="aspect-[4/3] bg-zinc-200">
+                                <img src={p.coverImageUrl} alt={p.title} className="h-full w-full object-cover" loading="lazy" />
+                              </div>
+                              <div className="p-3">
+                                <p className="font-display font-bold text-xl uppercase text-ink">{p.title}</p>
+                                <p className="text-xs uppercase tracking-wide text-zinc-500">{p.photographer}</p>
+                                <p className="text-xs uppercase tracking-wide text-warm">{p.dateLabel}</p>
+                                <div className="mt-2 flex gap-3 text-sm">
+                                  <Link href={p.albumUrl} target="_blank" className="text-accent">Gallery →</Link>
+                                  <Link href={p.websiteUrl} target="_blank" className="text-accent">Website →</Link>
+                                </div>
+                              </div>
+                            </article>
+                          ))}
+                          <Link href="/gallery#pro-galleries" className="inline-flex text-sm font-semibold text-accent no-underline hover:no-underline">
+                            Open full galleries page →
+                          </Link>
+                        </div>
+                      </details>
                     </div>
                   ) : null}
                   <div className="mt-4 hidden gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-4">

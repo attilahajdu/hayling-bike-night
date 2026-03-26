@@ -39,7 +39,7 @@ export function CommunityUploadForm() {
         setStatus("error");
         const err = url.searchParams.get("error");
         const detail = url.searchParams.get("detail");
-        if (err === "too-many") setNote("Please upload up to 20 images at a time.");
+        if (err === "too-many") setNote("Please upload up to 10 images at a time.");
         else if (detail === "401" || detail === "403")
           setNote(
             "Strapi rejected the API token (this check runs on Netlify’s server, so the browser console stays empty). Re-paste STRAPI_API_TOKEN in Netlify with no spaces or quotes, or open Strapi on Render → Settings → API Tokens → regenerate, then paste the new value into Netlify and redeploy.",
@@ -70,7 +70,7 @@ export function CommunityUploadForm() {
           className="mt-1 block h-11 w-full rounded-xl border border-zinc-300 bg-white px-3 pt-2 text-ink file:mr-3 file:rounded file:border-0 file:bg-accent file:px-3 file:py-1 file:text-[rgb(var(--color-on-accent))] dark:border-zinc-600 dark:bg-zinc-950"
         />
       </label>
-      <p className="-mt-2 text-xs text-zinc-500 dark:text-zinc-400">You can upload up to 20 images per submission.</p>
+      <p className="-mt-2 text-xs text-zinc-500 dark:text-zinc-400">You can upload up to 10 images per submission.</p>
 
       <label className="block text-sm text-zinc-700 dark:text-zinc-300">
         Your name / handle (optional)
