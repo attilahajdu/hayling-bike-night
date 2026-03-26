@@ -180,7 +180,7 @@ export default async function HomePage() {
               </div>
               <Link
                 href="/gallery#community-photos"
-                className="text-sm font-medium text-accent no-underline hover:underline"
+                className="text-sm font-medium text-accent no-underline hover:text-accentHover hover:no-underline"
               >
                 View all in gallery →
               </Link>
@@ -274,7 +274,7 @@ export default async function HomePage() {
                 </Link>
                 <Link
                   href="/events"
-                  className="text-center text-sm font-semibold text-accent no-underline hover:underline lg:text-right"
+                  className="text-center text-sm font-semibold text-accent no-underline hover:text-accentHover hover:no-underline lg:text-right"
                 >
                   Browse all rides and meetups →
                 </Link>

@@ -159,7 +159,7 @@ export default async function GalleryHubPage({ searchParams }: { searchParams: P
         <section className="grid grid-cols-2 gap-3">
           <Link
             href="/gallery#pro-photographer-galleries"
-            className="group relative flex min-h-[124px] items-center justify-center overflow-hidden rounded-xl border border-zinc-700/80 bg-zinc-950 p-3 text-center no-underline text-zinc-100 shadow-xl transition hover:-translate-y-0.5 hover:border-blue-400/60 hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 sm:min-h-[136px] sm:p-5"
+            className="group relative flex min-h-[124px] items-center justify-center overflow-hidden rounded-xl border border-zinc-700/80 bg-zinc-950 p-3 text-center no-underline text-zinc-100 shadow-xl transition hover:-translate-y-0.5 hover:border-blue-400/60 hover:no-underline hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 sm:min-h-[136px] sm:p-5"
           >
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(78,152,255,0.35),transparent_62%)]" />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-950/55 via-zinc-900/45 to-zinc-950/90" />
@@ -175,7 +175,7 @@ export default async function GalleryHubPage({ searchParams }: { searchParams: P
           </Link>
           <Link
             href="/gallery#community-photos"
-            className="group relative flex min-h-[124px] items-center justify-center overflow-hidden rounded-xl border border-zinc-700/80 bg-zinc-950 p-3 text-center no-underline text-zinc-100 shadow-xl transition hover:-translate-y-0.5 hover:border-blue-400/60 hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 sm:min-h-[136px] sm:p-5"
+            className="group relative flex min-h-[124px] items-center justify-center overflow-hidden rounded-xl border border-zinc-700/80 bg-zinc-950 p-3 text-center no-underline text-zinc-100 shadow-xl transition hover:-translate-y-0.5 hover:border-blue-400/60 hover:no-underline hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 sm:min-h-[136px] sm:p-5"
           >
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(78,152,255,0.35),transparent_62%)]" />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-950/55 via-zinc-900/45 to-zinc-950/90" />
@@ -251,7 +251,7 @@ export default async function GalleryHubPage({ searchParams }: { searchParams: P
                     href={a.attributes.albumUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm font-semibold text-accent no-underline hover:underline"
+                    className="text-sm font-semibold text-accent no-underline hover:text-accentHover hover:no-underline"
                   >
                     Latest gallery →
                   </Link>
@@ -259,7 +259,7 @@ export default async function GalleryHubPage({ searchParams }: { searchParams: P
                     href={a.attributes.shopUrl ?? a.attributes.albumUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm font-semibold text-accent no-underline hover:underline"
+                    className="text-sm font-semibold text-accent no-underline hover:text-accentHover hover:no-underline"
                   >
                     Website →
                   </Link>
@@ -292,7 +292,7 @@ export default async function GalleryHubPage({ searchParams }: { searchParams: P
                         href={p.albumUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm font-semibold text-accent no-underline hover:underline"
+                        className="text-sm font-semibold text-accent no-underline hover:text-accentHover hover:no-underline"
                       >
                         Latest gallery →
                       </Link>
@@ -300,7 +300,7 @@ export default async function GalleryHubPage({ searchParams }: { searchParams: P
                         href={p.websiteUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm font-semibold text-accent no-underline hover:underline"
+                        className="text-sm font-semibold text-accent no-underline hover:text-accentHover hover:no-underline"
                       >
                         Website →
                       </Link>
@@ -455,7 +455,7 @@ export default async function GalleryHubPage({ searchParams }: { searchParams: P
                   ) : null}
                   <Link
                     href={`/gallery/${entry.attributes.slug}`}
-                    className="mt-4 inline-block text-sm font-semibold text-accent no-underline hover:underline"
+                    className="mt-4 inline-block text-sm font-semibold text-accent no-underline hover:text-accentHover hover:no-underline"
                   >
                     Open this week →
                   </Link>

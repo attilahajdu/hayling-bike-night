@@ -1,5 +1,6 @@
 import { CommunityEventSubmitForm } from "@/components/CommunityEventSubmitForm";
 import { EventCard } from "@/components/EventCard";
+import { getDemoUpcomingEvents } from "@/lib/demo-events";
 import { getEvents } from "@/lib/strapi";
 
 export const revalidate = 120;
@@ -7,6 +8,7 @@ export const revalidate = 120;
 export default async function EventsPage() {
   const res = await getEvents({ upcoming: true });
   const list = res?.data ?? [];
+  const displayList = list.length === 0 && process.env.NODE_ENV !== "production" ? getDemoUpcomingEvents(10) : list;
 
   return (
     <div className="shell py-10 sm:py-14">
@@ -58,15 +60,21 @@ export default async function EventsPage() {
             </p>
           </div>
         </div>
-        {list.length === 0 ? (
+        {displayList.length === 0 ? (
           <p className="mt-8 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-12 text-center text-zinc-600 dark:border-zinc-600 dark:bg-zinc-900/40 dark:text-zinc-400">
             Nothing in the diary yet — check back soon, or suggest a ride or meetup down below.
           </p>
         ) : (
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {list.map((e, idx) => (
+            {displayList.map((e, idx) => (
               <div key={e.id} className="min-w-0">
-                <EventCard attrs={e.attributes} href={`/events/${e.attributes.slug}`} featured={idx === 0} wide />
+                <EventCard
+                  attrs={e.attributes}
+                  href={`/events/${e.attributes.slug}`}
+                  featured={idx === 0}
+                    featuredLabel={idx === 0 ? "Coming up" : undefined}
+                  wide
+                />
               </div>
             ))}
           </div>

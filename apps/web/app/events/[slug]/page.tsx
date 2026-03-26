@@ -92,7 +92,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
         <div className="mt-12 border-t border-zinc-200/80 pt-8 dark:border-zinc-700/80">
           <Link
             href="/events"
-            className="inline-flex text-sm font-semibold text-accent no-underline transition hover:underline"
+            className="inline-flex text-sm font-semibold text-accent no-underline transition hover:text-accentHover hover:no-underline"
           >
             ← Back to all events
           </Link>

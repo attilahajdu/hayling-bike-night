@@ -9,6 +9,7 @@ export function EventCard({
   attrs,
   href,
   featured = false,
+  featuredLabel,
   showForecast,
   forecastText,
   wide = false,
@@ -16,6 +17,7 @@ export function EventCard({
   attrs: EventAttrs;
   href: string;
   featured?: boolean;
+  featuredLabel?: string;
   showForecast?: boolean;
   forecastText?: string | null;
   /** Full width in CSS grid (e.g. /events page) */
@@ -27,35 +29,38 @@ export function EventCard({
 
   return (
     <article
-      className={`group flex flex-col rounded-xl border p-4 shadow-sm transition hover:shadow-md ${
+      className={`group relative flex flex-col rounded-xl border p-4 shadow-sm transition hover:shadow-md ${
         wide ? "w-full min-w-0 max-w-none" : "min-w-[min(100%,220px)] max-w-[248px]"
       } ${
         featured
-          ? "border-accent/50 bg-accent text-[rgb(var(--color-on-accent))] ring-1 ring-accent/20"
+          ? "border-accent/40 bg-white text-ink ring-1 ring-accent/20 dark:border-accent/40 dark:bg-[rgb(var(--color-card))]"
           : "border-zinc-200/90 bg-white text-ink dark:border-zinc-700 dark:bg-[rgb(var(--color-card))]"
       }`}
     >
       <p
-        className={`inline-flex w-fit rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${
-          featured
-            ? "bg-white/20 text-[rgb(var(--color-on-accent))]"
-            : isBikeNight
-              ? "bg-accent/15 text-accent dark:bg-accent/25"
-              : "bg-zinc-200 text-zinc-800 dark:bg-zinc-700 dark:text-zinc-200"
+        className={`inline-flex w-fit rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${
+          isBikeNight
+            ? "border-accent/50 bg-accent/20 text-accent dark:border-accent/60 dark:bg-accent/25"
+            : "border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-200"
         }`}
       >
-        {kind === "Bike Night" ? "Bike Night" : "Community"}
+        {kind === "Bike Night" ? "Official Bike Night" : "Community"}
       </p>
+      {featuredLabel ? (
+        <span className="absolute right-3 top-3 rounded-full border border-accent/50 bg-accent/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-accent">
+          {featuredLabel}
+        </span>
+      ) : null}
       <p
         className={`mt-3 font-display text-4xl font-bold leading-none tabular-nums ${
-          featured ? "text-[rgb(var(--color-on-accent))]" : "text-ink"
+          featured ? "text-ink dark:text-zinc-100" : "text-ink"
         }`}
       >
         {d.getDate()}
       </p>
       <p
         className={`text-sm uppercase tracking-wide ${
-          featured ? "text-[rgb(var(--color-on-accent))]/90" : "text-zinc-600 dark:text-zinc-400"
+          featured ? "text-zinc-600 dark:text-zinc-300" : "text-zinc-600 dark:text-zinc-400"
         }`}
       >
         {d.toLocaleDateString("en-GB", { month: "short", weekday: "short" })}
@@ -69,19 +74,19 @@ export function EventCard({
       </p>
       <p
         className={`mt-2 text-xs leading-relaxed ${
-          featured ? "text-[rgb(var(--color-on-accent))]/90" : "text-zinc-600 dark:text-zinc-400"
+          featured ? "text-zinc-600 dark:text-zinc-300" : "text-zinc-600 dark:text-zinc-400"
         }`}
       >
         {attrs.location}
       </p>
       {showForecast && forecastText ? (
-        <p className={`mt-2 text-xs ${featured ? "text-[rgb(var(--color-on-accent))]/85" : "text-zinc-500"}`}>
+        <p className={`mt-2 text-xs ${featured ? "text-zinc-500 dark:text-zinc-400" : "text-zinc-500"}`}>
           Forecast: {forecastText}
         </p>
       ) : null}
       <p
         className={`mt-2 text-[11px] font-medium tabular-nums ${
-          featured ? "text-[rgb(var(--color-on-accent))]/80" : "text-zinc-500 dark:text-zinc-400"
+          featured ? "text-zinc-500 dark:text-zinc-400" : "text-zinc-500 dark:text-zinc-400"
         }`}
       >
         {attrs.goingCount ?? 0} going · {attrs.interestedCount ?? 0} interested
@@ -89,8 +94,8 @@ export function EventCard({
       <div className="mt-auto pt-3">
         <Link
           href={href}
-          className={`inline-flex text-sm font-semibold no-underline transition hover:underline ${
-            featured ? "text-[rgb(var(--color-on-accent))]" : "text-accent"
+          className={`inline-flex text-sm font-semibold no-underline transition hover:no-underline ${
+            featured ? "text-accent" : "text-accent"
           }`}
         >
           Details →
