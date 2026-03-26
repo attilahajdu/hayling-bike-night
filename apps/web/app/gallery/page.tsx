@@ -109,35 +109,6 @@ export default async function GalleryHubPage({ searchParams }: { searchParams: P
           : `${n} photos shared so far this week`;
   }
 
-  const starterPros = [
-    {
-      id: "starter-1",
-      title: "Michael Jones-Price Photography",
-      albumUrl:
-        "https://michaeljones-pricephotography.pixieset.com/rykassessionarrivalsonly09001300-3/?fbclid=IwY2xjawQqAUpleHRuA2FlbQIxMQBzcnRjBmFwcF9pZBAyMjIwMzkxNzg4MjAwODkyAAEewQToGTI8mwRx77U20oa4rj5_9_4bkUSJ0bYCx_yS_nGfK5PCVHMzYtiYKbo_aem_oUY4_SyE26bZ-sQJNAAv1A",
-      websiteUrl: "https://michaeljones-pricephotography.pixieset.com",
-      coverImageUrl: "/images/hayling-badge.png",
-      photographer: "Michael Jones-Price",
-      shortDescription: "Trackside and arrivals coverage with clean event shots.",
-      dateLabel: "21 August 2025",
-    },
-    {
-      id: "starter-2",
-      title: "The Right Bikes",
-      albumUrl:
-        "https://www.therightbikes.com/?fbclid=IwY2xjawQqAnJleHRuA2FlbQIxMABicmlkETFkdE5RaTJlT1k0R0xSbXlmc3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHk-cnNhYxOlCMYOD_FmP302hjwxZYql-wQ8p2QBRifRdl5Szs21vTAZUpC2n_aem_OLqIvp0tJyJ6ni1wkZ1diA",
-      websiteUrl: "https://www.therightbikes.com",
-      coverImageUrl: "/images/ridebikes.png",
-      photographer: "The Right Bikes",
-      shortDescription: "Bike night stories and regular community ride coverage.",
-      dateLabel: "21 August 2025",
-    },
-  ];
-  const communityFallback = [
-    { id: "community-owner", src: "/images/owner.jpg", label: "Community upload · 21 August 2025" },
-    { id: "community-beach", src: "/images/hayling-beach.jpg", label: "Community upload · 21 August 2025" },
-  ];
-
   const proAlbumsPool = searchMode ? official : official.slice(0, 4);
   const thisWeekLine = `This week · ${cardDateLabel}`;
 
@@ -218,101 +189,62 @@ export default async function GalleryHubPage({ searchParams }: { searchParams: P
           </div>
         </div>
 
-        <ul className="mt-5 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr))]">
-          {proAlbumsPool.map((a) => (
-            <li
-              key={a.id}
-              className="group flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm transition hover:border-zinc-300 dark:border-zinc-700 dark:bg-[rgb(var(--color-card))] dark:hover:border-zinc-600"
-            >
-              <div className="aspect-[16/10] bg-zinc-200">
-                {a.attributes.coverImageUrl ? (
-                  <img
-                    src={a.attributes.coverImageUrl}
-                    alt={a.attributes.title}
-                    className="h-full w-full object-cover transition duration-300 group-hover:opacity-[0.97]"
-                    loading="lazy"
-                    referrerPolicy="no-referrer"
-                  />
-                ) : null}
-              </div>
-              <div className="flex flex-1 flex-col p-5">
-                <p className="font-display text-xl font-bold uppercase leading-tight text-ink">{a.attributes.title}</p>
-                <p className="mt-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">
-                  {a.attributes.photographer?.data?.attributes.name ?? a.attributes.submittedByName ?? "Photographer"}
-                </p>
-                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                  {searchMode ? albumWeekLine(a.attributes, thisWeekLine) : thisWeekLine}
-                </p>
-                {a.attributes.shortDescription ? (
-                  <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">{a.attributes.shortDescription}</p>
-                ) : null}
-                <div className="mt-auto flex flex-wrap gap-x-4 gap-y-2 pt-5">
-                  <Link
-                    href={a.attributes.albumUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm font-semibold text-accent no-underline hover:text-accentHover hover:no-underline"
-                  >
-                    Latest gallery →
-                  </Link>
-                  <Link
-                    href={a.attributes.shopUrl ?? a.attributes.albumUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm font-semibold text-accent no-underline hover:text-accentHover hover:no-underline"
-                  >
-                    Website →
-                  </Link>
-                </div>
-              </div>
-            </li>
-          ))}
-          {!searchMode && proAlbumsPool.length < 4
-            ? starterPros.slice(0, 4 - proAlbumsPool.length).map((p) => (
-                <li
-                  key={p.id}
-                  className="group flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm transition hover:border-zinc-300 dark:border-zinc-700 dark:bg-[rgb(var(--color-card))] dark:hover:border-zinc-600"
-                >
-                  <div className="aspect-[16/10] bg-zinc-200">
+        {proAlbumsPool.length > 0 ? (
+          <ul className="mt-5 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr))]">
+            {proAlbumsPool.map((a) => (
+              <li
+                key={a.id}
+                className="group flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm transition hover:border-zinc-300 dark:border-zinc-700 dark:bg-[rgb(var(--color-card))] dark:hover:border-zinc-600"
+              >
+                <div className="aspect-[16/10] bg-zinc-200">
+                  {a.attributes.coverImageUrl ? (
                     <img
-                      src={p.coverImageUrl}
-                      alt={p.title}
+                      src={a.attributes.coverImageUrl}
+                      alt={a.attributes.title}
                       className="h-full w-full object-cover transition duration-300 group-hover:opacity-[0.97]"
                       loading="lazy"
                       referrerPolicy="no-referrer"
                     />
+                  ) : null}
+                </div>
+                <div className="flex flex-1 flex-col p-5">
+                  <p className="font-display text-xl font-bold uppercase leading-tight text-ink">{a.attributes.title}</p>
+                  <p className="mt-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">
+                    {a.attributes.photographer?.data?.attributes.name ?? a.attributes.submittedByName ?? "Photographer"}
+                  </p>
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                    {searchMode ? albumWeekLine(a.attributes, thisWeekLine) : thisWeekLine}
+                  </p>
+                  {a.attributes.shortDescription ? (
+                    <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">{a.attributes.shortDescription}</p>
+                  ) : null}
+                  <div className="mt-auto flex flex-wrap gap-x-4 gap-y-2 pt-5">
+                    <Link
+                      href={a.attributes.albumUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-semibold text-accent no-underline hover:text-accentHover hover:no-underline"
+                    >
+                      Latest gallery →
+                    </Link>
+                    <Link
+                      href={a.attributes.shopUrl ?? a.attributes.albumUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-semibold text-accent no-underline hover:text-accentHover hover:no-underline"
+                    >
+                      Website →
+                    </Link>
                   </div>
-                  <div className="flex flex-1 flex-col p-5">
-                    <p className="font-display text-xl font-bold uppercase leading-tight text-ink">{p.title}</p>
-                    <p className="mt-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">{p.photographer}</p>
-                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{thisWeekLine}</p>
-                    <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">{p.shortDescription}</p>
-                    <div className="mt-auto flex flex-wrap gap-x-4 gap-y-2 pt-5">
-                      <Link
-                        href={p.albumUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm font-semibold text-accent no-underline hover:text-accentHover hover:no-underline"
-                      >
-                        Latest gallery →
-                      </Link>
-                      <Link
-                        href={p.websiteUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm font-semibold text-accent no-underline hover:text-accentHover hover:no-underline"
-                      >
-                        Website →
-                      </Link>
-                    </div>
-                  </div>
-                </li>
-              ))
-            : null}
-        </ul>
-        {searchMode && proAlbumsPool.length === 0 ? (
-          <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-300">No photographer albums match that search.</p>
-        ) : null}
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-300">
+            {searchMode ? "No photographer albums match that search." : "No pro galleries to show yet."}
+          </p>
+        )}
       </section>
 
       {/* Community — full-bleed band; anchor for /gallery#community-photos (e.g. home CTA) */}
@@ -385,19 +317,10 @@ export default async function GalleryHubPage({ searchParams }: { searchParams: P
           </div>
           {displayCommunity.length ? (
             <GalleryGrid items={displayCommunity} sortMode={sort} />
-          ) : searchMode ? (
-            <p className="text-sm text-zinc-600 dark:text-zinc-300">No community photos match that search.</p>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-              {communityFallback.map((item) => (
-                <article key={item.id} className="card overflow-hidden">
-                  <div className="aspect-square bg-zinc-200">
-                    <img src={item.src} alt={item.label} className="h-full w-full object-cover" loading="lazy" />
-                  </div>
-                  <p className="p-3 text-xs uppercase tracking-wide text-zinc-600 dark:text-zinc-300">{item.label}</p>
-                </article>
-              ))}
-            </div>
+            <p className="text-sm text-zinc-600 dark:text-zinc-300">
+              {searchMode ? "No community photos match that search." : "No community photos to show yet."}
+            </p>
           )}
         </div>
       </section>

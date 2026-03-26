@@ -9,43 +9,6 @@ import {
 
 export const dynamic = "force-dynamic";
 
-const starterPros = [
-  {
-    title: "Michael Jones-Price Photography",
-    albumUrl:
-      "https://michaeljones-pricephotography.pixieset.com/rykassessionarrivalsonly09001300-3/?fbclid=IwY2xjawQqAUpleHRuA2FlbQIxMQBzcnRjBmFwcF9pZBAyMjIwMzkxNzg4MjAwODkyAAEewQToGTI8mwRx77U20oa4rj5_9_4bkUSJ0bYCx_yS_nGfK5PCVHMzYtiYKbo_aem_oUY4_SyE26bZ-sQJNAAv1A",
-    websiteUrl: "https://michaeljones-pricephotography.pixieset.com",
-    coverImageUrl: "/images/hayling-bike-night-hero.png",
-    shortDescription: "Trackside and arrivals coverage with sharp, clean bike portrait shots.",
-    submittedByName: "Michael Jones-Price",
-  },
-  {
-    title: "The Right Bikes",
-    albumUrl:
-      "https://www.therightbikes.com/?fbclid=IwY2xjawQqAnJleHRuA2FlbQIxMABicmlkETFkdE5RaTJlT1k0R0xSbXlmc3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHk-cnNhYxOlCMYOD_FmP302hjwxZYql-wQ8p2QBRifRdl5Szs21vTAZUpC2n_aem_OLqIvp0tJyJ6ni1wkZ1diA",
-    websiteUrl: "https://www.therightbikes.com",
-    coverImageUrl: "/images/hayling-bike-night-hero.png",
-    shortDescription: "Community-first bike event stories, ride-outs, and visual meet reports.",
-    submittedByName: "The Right Bikes",
-  },
-  {
-    title: "Pro Photographer Slot 3",
-    albumUrl: "/submit-album",
-    websiteUrl: "/submit-album",
-    coverImageUrl: "/images/hayling-bike-night-hero.png",
-    shortDescription: "Reserved for weekly pro partner submissions.",
-    submittedByName: "Open slot",
-  },
-  {
-    title: "Pro Photographer Slot 4",
-    albumUrl: "/submit-album",
-    websiteUrl: "/submit-album",
-    coverImageUrl: "/images/hayling-bike-night-hero.png",
-    shortDescription: "Reserved for weekly pro partner submissions.",
-    submittedByName: "Open slot",
-  },
-];
-
 export default async function GalleryEntryPage({
   params,
   searchParams,
@@ -76,25 +39,17 @@ export default async function GalleryEntryPage({
   const communityPublishedCount = qTrim ? communityPhotos.length : (publishedWeekTotal ?? communityPhotos.length);
   const liveAt = entry.attributes.galleryLiveAt ? new Date(entry.attributes.galleryLiveAt).toLocaleString("en-GB") : "Pending";
 
-  const proCards = [
-    ...(albumsRes?.data?.map((a) => ({
+  const proCards =
+    albumsRes?.data?.map((a) => ({
       id: String(a.id),
       title: a.attributes.title,
       albumUrl: a.attributes.albumUrl,
       websiteUrl: a.attributes.shopUrl ?? a.attributes.albumUrl,
-      coverImageUrl: a.attributes.coverImageUrl ?? "/images/hayling-bike-night-hero.png",
+      coverImageUrl: a.attributes.coverImageUrl ?? null,
       shortDescription:
-        a.attributes.shortDescription ??
-        a.attributes.photographer?.data?.attributes.bio ??
-        "Professional event coverage from Hayling Bike Night.",
+        a.attributes.shortDescription ?? a.attributes.photographer?.data?.attributes.bio ?? null,
       submittedByName: a.attributes.photographer?.data?.attributes.name ?? a.attributes.submittedByName ?? "Photographer",
-    })) ?? []),
-  ];
-
-  if (proCards.length < 4) {
-    const needed = 4 - proCards.length;
-    proCards.push(...starterPros.slice(0, needed).map((item, idx) => ({ ...item, id: `starter-${idx}` })));
-  }
+    })) ?? [];
 
   return (
     <div className="shell py-12">
@@ -122,24 +77,42 @@ export default async function GalleryEntryPage({
         <p className="mb-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
           Required each week: gallery URL and one thumbnail.
         </p>
-        <ul className="grid gap-4 sm:grid-cols-2">
-          {proCards.slice(0, 4).map((p) => (
-            <li key={p.id} className="card overflow-hidden">
-              <div className="aspect-[16/9] overflow-hidden bg-zinc-200 dark:bg-zinc-800">
-                <img src={p.coverImageUrl} alt={p.title} className="h-full w-full object-cover" loading="lazy" referrerPolicy="no-referrer" />
-              </div>
-              <div className="p-4">
-                <h3 className="font-display font-bold text-2xl uppercase text-ink">{p.title}</h3>
-                <p className="mt-1 text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{p.submittedByName}</p>
-                <p className="mt-2 text-sm leading-relaxed text-zinc-700 dark:text-zinc-200">{p.shortDescription}</p>
-                <div className="mt-3 flex flex-wrap gap-3 text-sm">
-                  <Link href={p.albumUrl} target="_blank" className="text-accent">Open latest gallery →</Link>
-                  <Link href={p.websiteUrl} target="_blank" className="text-accent">Website →</Link>
+        {proCards.length === 0 ? (
+          <p className="text-sm text-zinc-600 dark:text-zinc-300">No pro photographer galleries to show for this week yet.</p>
+        ) : (
+          <ul className="grid gap-4 sm:grid-cols-2">
+            {proCards.slice(0, 4).map((p) => (
+              <li key={p.id} className="card overflow-hidden">
+                <div className="aspect-[16/9] overflow-hidden bg-zinc-200 dark:bg-zinc-800">
+                  {p.coverImageUrl ? (
+                    <img
+                      src={p.coverImageUrl}
+                      alt={p.title}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : null}
                 </div>
-              </div>
-            </li>
-          ))}
-        </ul>
+                <div className="p-4">
+                  <h3 className="font-display font-bold text-2xl uppercase text-ink">{p.title}</h3>
+                  <p className="mt-1 text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{p.submittedByName}</p>
+                  {p.shortDescription ? (
+                    <p className="mt-2 text-sm leading-relaxed text-zinc-700 dark:text-zinc-200">{p.shortDescription}</p>
+                  ) : null}
+                  <div className="mt-3 flex flex-wrap gap-3 text-sm">
+                    <Link href={p.albumUrl} target="_blank" className="text-accent">
+                      Open latest gallery →
+                    </Link>
+                    <Link href={p.websiteUrl} target="_blank" className="text-accent">
+                      Website →
+                    </Link>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="mt-10">
@@ -152,7 +125,11 @@ export default async function GalleryEntryPage({
             ? `Matching community photos (${communityPublishedCount} items).`
             : `Published community photos for this gallery week (${communityPublishedCount} items).`}
         </p>
-        <GalleryGrid items={communityPhotos} />
+        {communityPhotos.length ? (
+          <GalleryGrid items={communityPhotos} />
+        ) : (
+          <p className="text-sm text-zinc-600 dark:text-zinc-300">No community photos to show yet.</p>
+        )}
       </section>
     </div>
   );
