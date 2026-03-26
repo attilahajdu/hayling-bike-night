@@ -27,9 +27,7 @@ export default async function EventsPage() {
               Rides and meetups
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-zinc-400">
-              Official Thursday Bike Nights plus whatever riders are cooking up nearby. If you suggest a ride or meetup, it
-              stays off this page until the Hayling Bike Night crew have given it a quick look — then it sits here with
-              the rest.
+              Official Thursday Bike Nights plus whatever riders are cooking up nearby.
             </p>
           </div>
           <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-zinc-900/60 p-5 backdrop-blur-sm lg:items-stretch">

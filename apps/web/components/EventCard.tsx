@@ -20,12 +20,13 @@ function ordinalDay(n: number): string {
   }
 }
 
-function formatLongDateLine(d: Date): string {
-  if (Number.isNaN(d.getTime())) return "Date to be confirmed";
-  const day = d.getDate();
-  const month = d.toLocaleDateString("en-GB", { month: "long" });
-  const weekday = d.toLocaleDateString("en-GB", { weekday: "long" });
-  return `${ordinalDay(day)} of ${month}, ${weekday}`;
+function dateParts(d: Date): { ordinal: string; month: string; weekday: string } | null {
+  if (Number.isNaN(d.getTime())) return null;
+  return {
+    ordinal: ordinalDay(d.getDate()),
+    month: d.toLocaleDateString("en-GB", { month: "long" }),
+    weekday: d.toLocaleDateString("en-GB", { weekday: "long" }),
+  };
 }
 
 const badgeShell =
@@ -56,16 +57,20 @@ export function EventCard({
     ? "Time TBC"
     : d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
   const eventLocation = attrs.location?.trim() || "Location to be confirmed";
+  const parts = dateParts(d);
+  const dateLabel = parts
+    ? `${parts.ordinal} ${parts.month} ${parts.weekday}`
+    : "Date to be confirmed";
 
   return (
     <article
-      className={`group flex flex-col rounded-xl border p-4 shadow-sm transition hover:shadow-md ${
-        wide ? "w-full min-w-0 max-w-none" : "min-w-[min(100%,220px)] max-w-[248px]"
+      className={`group flex flex-col rounded-xl border p-4 shadow-sm outline-none transition duration-200 ease-out will-change-transform ${
+        wide ? "w-full min-w-0 max-w-none" : "min-w-[min(100%,240px)] max-w-[280px]"
       } ${
         featured
           ? "border-accent/40 bg-white text-ink ring-1 ring-accent/20 dark:border-accent/40 dark:bg-[rgb(var(--color-card))]"
           : "border-zinc-200/90 bg-white text-ink dark:border-zinc-700 dark:bg-[rgb(var(--color-card))]"
-      }`}
+      } hover:-translate-y-0.5 hover:border-accent/35 hover:shadow-[0_12px_40px_-12px_rgba(15,23,42,0.18)] hover:ring-1 hover:ring-accent/15 focus-within:-translate-y-0.5 focus-within:border-accent/40 focus-within:shadow-[0_12px_40px_-12px_rgba(15,23,42,0.2)] focus-within:ring-1 focus-within:ring-accent/20 dark:hover:border-zinc-500 dark:hover:shadow-[0_14px_44px_-10px_rgba(0,0,0,0.45)] dark:hover:ring-white/10 dark:focus-within:border-zinc-500 motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:focus-within:translate-y-0`}
     >
       {/* 1. Badges — flex row so they never overlap */}
       <div className="flex flex-wrap items-center gap-2">
@@ -87,14 +92,35 @@ export function EventCard({
         ) : null}
       </div>
 
-      {/* 2. Date — full words, easy to read */}
-      <p
-        className={`mt-3 font-display text-xl font-bold leading-snug tracking-tight sm:text-2xl ${
-          featured ? "text-ink dark:text-zinc-100" : "text-ink"
-        }`}
+      {/* 2. Date — day dominates; reads as “27th March Friday” without feeling like one flat sentence */}
+      <div
+        className="mt-3"
+        aria-label={dateLabel}
       >
-        {formatLongDateLine(d)}
-      </p>
+        {parts ? (
+          <p className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 leading-[1.1]">
+            <span
+              className={`font-display text-[2rem] font-bold tabular-nums tracking-tight sm:text-[2.35rem] ${
+                featured ? "text-ink dark:text-zinc-100" : "text-ink"
+              }`}
+            >
+              {parts.ordinal}
+            </span>
+            <span
+              className={`font-display text-xl font-bold tracking-tight sm:text-2xl ${
+                featured ? "text-ink dark:text-zinc-100" : "text-ink"
+              }`}
+            >
+              {parts.month}
+            </span>
+            <span className="font-display text-base font-semibold text-zinc-500 dark:text-zinc-400">
+              {parts.weekday}
+            </span>
+          </p>
+        ) : (
+          <p className="font-display text-xl font-bold text-zinc-500">Date to be confirmed</p>
+        )}
+      </div>
 
       {/* 3. Time */}
       <p
