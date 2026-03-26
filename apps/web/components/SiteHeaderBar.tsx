@@ -96,7 +96,7 @@ export function SiteHeaderBar({ facebookUrl, dateLine, forecast }: Props) {
             Local events
           </Link>
           <Link href="/events#submit-event" className={desktopLinkClass}>
-            Suggest a meet
+            Fancy a ride?
           </Link>
           <a
             href={facebookUrl}
@@ -175,7 +175,7 @@ export function SiteHeaderBar({ facebookUrl, dateLine, forecast }: Props) {
                 Local events
               </Link>
               <Link href="/events#submit-event" className={drawerLinkClass} onClick={close}>
-                Suggest a ride or meet
+                Fancy a ride?
               </Link>
               <a
                 href={facebookUrl}

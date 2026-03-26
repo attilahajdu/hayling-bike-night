@@ -120,7 +120,7 @@ export function CommunityEventSubmitForm() {
     >
       <div>
         <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-ink sm:text-3xl">
-          Got a ride or meet brewing?
+          Fancy a ride?
         </h2>
         <p className="mt-3 text-base leading-relaxed text-zinc-600 dark:text-zinc-400">
           Coffee meet, loop out, fundraiser, pub stop — if it&apos;s bikes and it&apos;s on Hayling or nearby, chuck it in.
