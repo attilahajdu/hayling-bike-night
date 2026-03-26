@@ -24,7 +24,7 @@ export function SiteFooter() {
           <div>
             <p className="font-display font-bold text-xl uppercase text-zinc-300">Community</p>
             <div className="mt-2 space-y-1 text-sm">
-              <Link href="/events" className="block text-zinc-300 no-underline hover:text-accent">Local events</Link>
+              <Link href="/events" className="block text-zinc-300 no-underline hover:text-accent">Rides and meetups</Link>
               <a
                 href={facebookUrl}
                 target="_blank"

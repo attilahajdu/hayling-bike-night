@@ -7,7 +7,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { SiteHeaderNextMeet } from "@/components/SiteHeaderNextMeet";
 
 const desktopLinkClass =
-  "relative py-1 font-body text-sm font-medium uppercase leading-none tracking-[0.14em] text-ink no-underline transition after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-accent after:transition-all hover:text-accent hover:after:w-full sm:text-base";
+  "relative py-1 font-body text-xs font-semibold uppercase leading-none tracking-[0.11em] text-ink no-underline transition after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-accent after:transition-all hover:text-accent hover:after:w-full sm:text-sm";
 
 const drawerLinkClass =
   "flex min-h-[52px] items-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 font-display text-base font-bold uppercase tracking-wide text-zinc-100 no-underline transition hover:border-blue-300/45 hover:bg-blue-500/15";
@@ -87,13 +87,13 @@ export function SiteHeaderBar({ facebookUrl, dateLine, forecast, nextMeetHref }:
           className="hidden min-w-0 flex-1 items-center justify-start gap-x-6 pl-4 md:flex lg:gap-x-7 lg:pl-5"
         >
           <Link href="/gallery" className={desktopLinkClass}>
-            Gallery
+            Galleries
           </Link>
           <Link href="/events" className={desktopLinkClass}>
-            Local events
+            Rides and meetups
           </Link>
           <Link href="/events#submit-event" className={desktopLinkClass}>
-            Fancy a ride?
+            Suggest a ride or meetup
           </Link>
           <a
             href={facebookUrl}
@@ -169,10 +169,10 @@ export function SiteHeaderBar({ facebookUrl, dateLine, forecast, nextMeetHref }:
                 Home
               </Link>
               <Link href="/gallery" className={drawerLinkClass} onClick={close}>
-                Gallery
+                Galleries
               </Link>
               <Link href="/events" className={drawerLinkClass} onClick={close}>
-                Events
+                Rides and meetups
               </Link>
               <Link href="/#find-us" className={drawerLinkClass} onClick={close}>
                 Find us

@@ -114,7 +114,7 @@ export function EventEngagement({
   }, [shareOpen]);
 
   const eventUrl = origin ? `${origin}/events/${slug}` : "";
-  const shareText = `${title} — ${dateLine}. Hayling Bike Night local events.`;
+  const shareText = `${title} — ${dateLine}. Hayling Bike Night rides and meetups.`;
   const facebookShareUrl = eventUrl
     ? `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(eventUrl)}`
     : "#";

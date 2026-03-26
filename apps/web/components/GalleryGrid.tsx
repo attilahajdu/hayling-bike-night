@@ -231,10 +231,19 @@ export function GalleryGrid({
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
         >
-          <button type="button" onClick={closeModal} className="absolute right-4 top-4 rounded-md bg-black/70 px-3 py-2 text-sm font-medium text-zinc-200">
+          <button
+            type="button"
+            onClick={closeModal}
+            className="btn-secondary absolute right-4 top-4 min-h-[42px] px-4 py-2 text-xs sm:text-sm"
+          >
             Close
           </button>
-          <button type="button" onClick={prevImage} className="absolute left-3 rounded-md bg-black/70 px-3 py-2 text-sm font-medium text-zinc-200" aria-label="Previous image">
+          <button
+            type="button"
+            onClick={prevImage}
+            className="btn-secondary absolute left-3 min-h-[42px] px-3 py-2 text-xs sm:text-sm"
+            aria-label="Previous image"
+          >
             Prev
           </button>
           <div className="w-full max-w-6xl">
@@ -247,33 +256,40 @@ export function GalleryGrid({
                 </p>
               </div>
             )}
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-zinc-100">
-              <p>@{activeUploader}</p>
-              <p>
+            <div className="mt-3 rounded-lg border border-white/15 bg-black/35 p-3 text-sm text-zinc-100">
+              <div className="flex items-center justify-between gap-3">
+                <p className="min-w-0 truncate text-left">@{activeUploader}</p>
+                <p className="shrink-0">
                 {activeIndex + 1} / {sortedItems.length}
-              </p>
-              <div className="flex items-center gap-2">
-                <button type="button" onClick={toggleLike} className="rounded-md border border-zinc-500 bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-100">
+                </p>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <button type="button" onClick={toggleLike} className="btn-secondary min-h-[42px] px-4 py-2 text-xs sm:text-sm">
                   {activeId && likedIds.includes(activeId) ? "Liked" : "Like"} ({activeId ? likeCounts[activeId] ?? 0 : 0})
                 </button>
-                <button type="button" onClick={shareActive} className="rounded-md border border-zinc-400 bg-white px-4 py-2 text-sm font-medium text-ink">
+                <button type="button" onClick={shareActive} className="btn-secondary min-h-[42px] px-4 py-2 text-xs sm:text-sm">
                   Share
                 </button>
                 {activeSrc ? (
-                  <a href={activeSrc} download className="rounded-md border border-zinc-500 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-200 no-underline">
+                  <a href={activeSrc} download className="btn-secondary min-h-[42px] px-4 py-2 text-xs sm:text-sm no-underline">
                     Download
                   </a>
                 ) : null}
+                {activeOutbound ? (
+                  <a href={activeOutbound} target="_blank" rel="noopener noreferrer" className="btn-secondary min-h-[42px] px-4 py-2 text-xs sm:text-sm no-underline">
+                    Buy / full gallery
+                  </a>
+                ) : null}
               </div>
-              {activeOutbound ? (
-                <a href={activeOutbound} target="_blank" rel="noopener noreferrer" className="text-accentHover no-underline">
-                  Buy / full gallery →
-                </a>
-              ) : null}
             </div>
             {copied ? <p className="mt-2 text-center text-xs text-zinc-300">Link copied</p> : null}
           </div>
-          <button type="button" onClick={nextImage} className="absolute right-3 rounded-md bg-black/70 px-3 py-2 text-sm font-medium text-zinc-200" aria-label="Next image">
+          <button
+            type="button"
+            onClick={nextImage}
+            className="btn-secondary absolute right-3 min-h-[42px] px-3 py-2 text-xs sm:text-sm"
+            aria-label="Next image"
+          >
             Next
           </button>
         </div>

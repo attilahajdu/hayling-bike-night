@@ -130,44 +130,46 @@ export function HomeCommunityPreview({ items }: { items: Item[] }) {
           <button
             type="button"
             onClick={() => setActivePhotoId(null)}
-            className="absolute right-4 top-4 rounded-md bg-black/70 px-3 py-2 text-sm font-medium text-zinc-200"
+            className="btn-secondary absolute right-4 top-4 min-h-[42px] px-4 py-2 text-xs sm:text-sm"
           >
             Close
           </button>
           <button
             type="button"
             onClick={prevImage}
-            className="absolute left-3 rounded-md bg-black/70 px-3 py-2 text-sm font-medium text-zinc-200"
+            className="btn-secondary absolute left-3 min-h-[42px] px-3 py-2 text-xs sm:text-sm"
             aria-label="Previous image"
           >
             Prev
           </button>
           <div className="w-full max-w-6xl">
             <img src={active.src} alt={active.alt} className="max-h-[78vh] w-full rounded-md object-contain" />
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-zinc-100">
-              <p className="min-w-0 flex-1 truncate">{active.alt}</p>
-              <p className="shrink-0">
+            <div className="mt-3 rounded-lg border border-white/15 bg-black/35 p-3 text-sm text-zinc-100">
+              <div className="flex items-center justify-between gap-3">
+                <p className="min-w-0 flex-1 truncate text-left">{active.alt}</p>
+                <p className="shrink-0">
                 {activeIndex + 1} / {sorted.length}
-              </p>
-              <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+                </p>
+              </div>
+              <div className="mt-3 flex w-full flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={toggleLike}
-                  className="rounded-md border border-zinc-500 bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-100"
+                  className="btn-secondary min-h-[42px] px-4 py-2 text-xs sm:text-sm"
                 >
                   {likedIds.includes(active.id) ? "Liked" : "Like"} ({likeCounts[active.id] ?? 0})
                 </button>
                 <button
                   type="button"
                   onClick={shareActive}
-                  className="rounded-md border border-zinc-400 bg-white px-4 py-2 text-sm font-medium text-ink"
+                  className="btn-secondary min-h-[42px] px-4 py-2 text-xs sm:text-sm"
                 >
                   Share
                 </button>
                 <a
                   href={active.src}
                   download
-                  className="rounded-md border border-zinc-500 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-200 no-underline"
+                  className="btn-secondary min-h-[42px] px-4 py-2 text-xs sm:text-sm no-underline"
                 >
                   Download
                 </a>
@@ -178,7 +180,7 @@ export function HomeCommunityPreview({ items }: { items: Item[] }) {
           <button
             type="button"
             onClick={nextImage}
-            className="absolute right-3 rounded-md bg-black/70 px-3 py-2 text-sm font-medium text-zinc-200"
+            className="btn-secondary absolute right-3 min-h-[42px] px-3 py-2 text-xs sm:text-sm"
             aria-label="Next image"
           >
             Next

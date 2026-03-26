@@ -31,8 +31,9 @@ export default async function HomePage() {
     uploader: "haylingbikenight",
   }));
   const apiEvents = (events?.data ?? []).slice(0, 8);
+  const displayEvents = apiEvents;
 
-  const nextStrapiEvent = apiEvents[0];
+  const nextStrapiEvent = displayEvents[0];
   const nextUpcomingForecast = nextStrapiEvent ? await getForecastForDate(nextStrapiEvent.attributes.dateStart) : null;
   const sevenDaysAgoIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const [officialRes, recentOfficialRes, publishedCommunityTotal, publishedCommunityLast7Days, communityPhotosRes] =
@@ -258,7 +259,7 @@ export default async function HomePage() {
             <div className="mb-8 flex flex-col gap-6 border-b border-zinc-200 pb-8 dark:border-zinc-800 lg:flex-row lg:items-end lg:justify-between">
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold uppercase tracking-[0.25em] text-accent">Plan your week</p>
-                <h2 className="mt-2 section-title">Local events</h2>
+                <h2 className="mt-2 section-title">Rides and meetups</h2>
                 <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
                   Thursday Bike Nights and whatever else riders are planning. Got your own spin? Suggest it on the events
                   page — the site team gives it a quick check, then it shows here with everything else.
@@ -269,21 +270,21 @@ export default async function HomePage() {
                   href="/events#submit-event"
                   className="btn-primary w-full lg:py-3.5"
                 >
-                  Suggest a ride or meet →
+                  Suggest a ride or meetup →
                 </Link>
                 <Link
                   href="/events"
                   className="text-center text-sm font-semibold text-accent no-underline hover:underline lg:text-right"
                 >
-                  Browse all events →
+                  Browse all rides and meetups →
                 </Link>
               </div>
             </div>
             <div className="flex gap-4 overflow-x-auto pb-3 pt-1 [scrollbar-width:thin]">
-              {apiEvents.length ? (
-                apiEvents.map((row, idx) => (
+              {displayEvents.length ? (
+                displayEvents.map((row, idx) => (
                   <EventCard
-                    key={row.id}
+                    key={row.id ?? `demo-${idx}`}
                     attrs={row.attributes}
                     href={`/events/${row.attributes.slug}`}
                     featured={idx === 0}
@@ -296,11 +297,11 @@ export default async function HomePage() {
                   <p className="text-sm text-zinc-600 dark:text-zinc-400">
                     No upcoming dates yet — open{" "}
                     <Link href="/events" className="font-medium text-accent no-underline hover:underline">
-                      local events
+                      rides and meetups
                     </Link>{" "}
                     or{" "}
                     <Link href="/events#submit-event" className="font-medium text-accent no-underline hover:underline">
-                      suggest a ride or meet
+                      suggest a ride or meetup
                     </Link>
                     .
                   </p>
@@ -330,12 +331,12 @@ export default async function HomePage() {
       <section id="find-us" className="bg-surface py-20">
         <div className="shell">
           <div className="card p-6 sm:p-8">
-          <h2 className="section-title">Find Us</h2>
+          <h2 className="section-title text-ink dark:text-zinc-100">Find Us</h2>
           <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_1.4fr]">
             <div>
-              <p className="font-display font-bold text-3xl uppercase text-ink">John&apos;s Cafe</p>
-              <p className="mt-2 text-lg text-zinc-700">PO11 0AS, Hayling Island</p>
-              <p className="mt-2 text-sm text-zinc-600">Every Thursday, April to September, 5pm till late.</p>
+              <p className="font-display font-bold text-3xl uppercase text-ink dark:text-zinc-100">John&apos;s Cafe</p>
+              <p className="mt-2 text-lg text-zinc-700 dark:text-zinc-200">PO11 0AS, Hayling Island</p>
+              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Every Thursday, April to September, 5pm till late.</p>
               <a
                 href="https://maps.google.com/?q=John%27s+Cafe+PO11+0AS"
                 target="_blank"
@@ -345,11 +346,12 @@ export default async function HomePage() {
                 Open in Google Maps
               </a>
             </div>
-            <div className="overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900">
+            <div className="relative overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900">
+              <div className="pointer-events-none absolute inset-0 z-10 bg-zinc-950/18" aria-hidden />
               <iframe
                 title="John's Cafe location map"
                 src="https://www.google.com/maps?q=John%27s+Cafe+PO11+0AS&output=embed"
-                className="h-[320px] w-full"
+                className="h-[320px] w-full [filter:grayscale(0.25)_invert(0.88)_hue-rotate(190deg)_contrast(0.9)_brightness(0.85)]"
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
               />

@@ -24,10 +24,10 @@ export default async function EventsPage() {
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-accent">Hayling & nearby</p>
             <h1 className="mt-4 font-display text-4xl font-bold uppercase leading-[1.05] tracking-tight sm:text-6xl">
-              Local events
+              Rides and meetups
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-zinc-400">
-              Official Thursday Bike Nights plus whatever riders are cooking up nearby. If you suggest a ride or meet, it
+              Official Thursday Bike Nights plus whatever riders are cooking up nearby. If you suggest a ride or meetup, it
               stays off this page until the Hayling Bike Night crew have given it a quick look — then it sits here with
               the rest.
             </p>
@@ -43,7 +43,7 @@ export default async function EventsPage() {
               href="#submit-event"
               className="btn-primary w-full sm:py-3.5"
             >
-              Suggest a ride or meet →
+              Suggest a ride or meetup →
             </a>
           </div>
         </div>
@@ -54,24 +54,19 @@ export default async function EventsPage() {
           <div>
             <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-ink sm:text-3xl">Upcoming</h2>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-              Thursday nights plus rider-suggested rides and meets that are live on the calendar.
+              Thursday nights plus rider-suggested rides and meetups that are live on the calendar.
             </p>
           </div>
         </div>
         {list.length === 0 ? (
           <p className="mt-8 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-12 text-center text-zinc-600 dark:border-zinc-600 dark:bg-zinc-900/40 dark:text-zinc-400">
-            Nothing in the diary yet — check back soon, or suggest a ride or meet down below.
+            Nothing in the diary yet — check back soon, or suggest a ride or meetup down below.
           </p>
         ) : (
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {list.map((e, idx) => (
-              <div key={e.id} className="flex min-w-0 justify-center sm:justify-stretch">
-                <EventCard
-                  attrs={e.attributes}
-                  href={`/events/${e.attributes.slug}`}
-                  featured={idx === 0}
-                  wide
-                />
+              <div key={e.id} className="min-w-0">
+                <EventCard attrs={e.attributes} href={`/events/${e.attributes.slug}`} featured={idx === 0} wide />
               </div>
             ))}
           </div>

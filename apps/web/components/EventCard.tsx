@@ -27,8 +27,8 @@ export function EventCard({
 
   return (
     <article
-      className={`group flex flex-col rounded-2xl border p-5 shadow-sm transition hover:shadow-md ${
-        wide ? "w-full min-w-0 max-w-none" : "min-w-[min(100%,260px)] max-w-[280px]"
+      className={`group flex flex-col rounded-xl border p-4 shadow-sm transition hover:shadow-md ${
+        wide ? "w-full min-w-0 max-w-none" : "min-w-[min(100%,220px)] max-w-[248px]"
       } ${
         featured
           ? "border-accent/50 bg-accent text-[rgb(var(--color-on-accent))] ring-1 ring-accent/20"
@@ -47,7 +47,7 @@ export function EventCard({
         {kind === "Bike Night" ? "Bike Night" : "Community"}
       </p>
       <p
-        className={`mt-4 font-display text-5xl font-bold leading-none tabular-nums ${
+        className={`mt-3 font-display text-4xl font-bold leading-none tabular-nums ${
           featured ? "text-[rgb(var(--color-on-accent))]" : "text-ink"
         }`}
       >
@@ -61,7 +61,7 @@ export function EventCard({
         {d.toLocaleDateString("en-GB", { month: "short", weekday: "short" })}
       </p>
       <p
-        className={`mt-3 font-display text-lg font-bold uppercase leading-snug ${
+        className={`mt-2 font-display text-base font-bold uppercase leading-snug ${
           featured ? "text-[rgb(var(--color-on-accent))]" : "text-ink"
         }`}
       >
@@ -86,7 +86,7 @@ export function EventCard({
       >
         {attrs.goingCount ?? 0} going · {attrs.interestedCount ?? 0} interested
       </p>
-      <div className="mt-auto pt-4">
+      <div className="mt-auto pt-3">
         <Link
           href={href}
           className={`inline-flex text-sm font-semibold no-underline transition hover:underline ${
