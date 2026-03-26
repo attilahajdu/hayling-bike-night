@@ -5,6 +5,32 @@ export function eventKindLabel(attrs: EventAttrs): "Bike Night" | "Community" {
   return attrs.eventKind === "community" ? "Community" : "Bike Night";
 }
 
+function ordinalDay(n: number): string {
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
+  switch (n % 10) {
+    case 1:
+      return `${n}st`;
+    case 2:
+      return `${n}nd`;
+    case 3:
+      return `${n}rd`;
+    default:
+      return `${n}th`;
+  }
+}
+
+function formatLongDateLine(d: Date): string {
+  if (Number.isNaN(d.getTime())) return "Date to be confirmed";
+  const day = d.getDate();
+  const month = d.toLocaleDateString("en-GB", { month: "long" });
+  const weekday = d.toLocaleDateString("en-GB", { weekday: "long" });
+  return `${ordinalDay(day)} of ${month}, ${weekday}`;
+}
+
+const badgeShell =
+  "inline-flex w-fit rounded-md border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em]";
+
 export function EventCard({
   attrs,
   href,
@@ -33,7 +59,7 @@ export function EventCard({
 
   return (
     <article
-      className={`group relative flex flex-col rounded-xl border p-4 shadow-sm transition hover:shadow-md ${
+      className={`group flex flex-col rounded-xl border p-4 shadow-sm transition hover:shadow-md ${
         wide ? "w-full min-w-0 max-w-none" : "min-w-[min(100%,220px)] max-w-[248px]"
       } ${
         featured
@@ -41,61 +67,79 @@ export function EventCard({
           : "border-zinc-200/90 bg-white text-ink dark:border-zinc-700 dark:bg-[rgb(var(--color-card))]"
       }`}
     >
-      <p
-        className={`inline-flex w-fit rounded-md border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${
-          isBikeNight
-            ? "border-accent/50 bg-accent/20 text-accent dark:border-accent/60 dark:bg-accent/25"
-            : "border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-200"
-        }`}
-      >
-        {kind === "Bike Night" ? "Official Bike Night" : "Community"}
-      </p>
-      {featuredLabel ? (
-        <span className="absolute right-3 top-3 rounded-md border border-accent/50 bg-accent/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-accent">
-          {featuredLabel}
+      {/* 1. Badges — flex row so they never overlap */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span
+          className={`${badgeShell} ${
+            isBikeNight
+              ? "border-accent/50 bg-accent/20 text-accent dark:border-accent/60 dark:bg-accent/25"
+              : "border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-200"
+          }`}
+        >
+          {kind === "Bike Night" ? "Official Bike Night" : "Community"}
         </span>
-      ) : null}
+        {featuredLabel ? (
+          <span
+            className={`${badgeShell} border-accent/50 bg-accent/15 text-accent`}
+          >
+            {featuredLabel}
+          </span>
+        ) : null}
+      </div>
+
+      {/* 2. Date — full words, easy to read */}
       <p
-        className={`mt-3 font-display text-4xl font-bold leading-none tabular-nums ${
+        className={`mt-3 font-display text-xl font-bold leading-snug tracking-tight sm:text-2xl ${
           featured ? "text-ink dark:text-zinc-100" : "text-ink"
         }`}
       >
-        {d.getDate()}
+        {formatLongDateLine(d)}
       </p>
+
+      {/* 3. Time */}
       <p
-        className={`text-sm uppercase tracking-wide ${
-          featured ? "text-zinc-600 dark:text-zinc-300" : "text-zinc-600 dark:text-zinc-400"
+        className={`mt-1 text-sm font-medium tabular-nums ${
+          featured ? "text-zinc-700 dark:text-zinc-300" : "text-zinc-700 dark:text-zinc-400"
         }`}
       >
-        {d.toLocaleDateString("en-GB", { month: "short", weekday: "short" })}
+        {eventTime}
       </p>
+
+      {/* 4. Title */}
       <p
-        className={`mt-2 font-display text-base font-bold uppercase leading-snug ${
+        className={`mt-3 font-display text-base font-bold uppercase leading-snug ${
           featured ? "text-[rgb(var(--color-on-accent))]" : "text-ink"
         }`}
       >
         {attrs.title}
       </p>
+
+      {/* 5. Location */}
       <p
-        className={`mt-2 text-xs leading-relaxed ${
+        className={`mt-2 text-sm leading-relaxed ${
           featured ? "text-zinc-600 dark:text-zinc-300" : "text-zinc-600 dark:text-zinc-400"
         }`}
       >
-        {eventTime} · {eventLocation}
+        {eventLocation}
       </p>
+
       {showForecast && forecastText ? (
         <p className={`mt-2 text-xs ${featured ? "text-zinc-500 dark:text-zinc-400" : "text-zinc-500"}`}>
           Forecast: {forecastText}
         </p>
       ) : null}
+
+      {/* 6. Going / interested */}
       <p
-        className={`mt-2 text-[11px] font-medium tabular-nums ${
+        className={`mt-3 text-[11px] font-medium tabular-nums ${
           featured ? "text-zinc-500 dark:text-zinc-400" : "text-zinc-500 dark:text-zinc-400"
         }`}
       >
         {attrs.goingCount ?? 0} going · {attrs.interestedCount ?? 0} interested
       </p>
-      <div className="mt-auto pt-3">
+
+      {/* 7. CTAs */}
+      <div className="mt-auto pt-4">
         <div className="flex flex-wrap items-center gap-2.5">
           <Link
             href={href}
