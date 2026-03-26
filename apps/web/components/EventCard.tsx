@@ -99,11 +99,9 @@ export function EventCard({
         <div className="flex flex-wrap items-center gap-2.5">
           <Link
             href={href}
-            className={`inline-flex text-sm font-semibold no-underline transition hover:no-underline ${
-              featured ? "text-accent" : "text-accent"
-            }`}
+            className="inline-flex items-center rounded-full border border-blue-300/80 bg-blue-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-blue-700 no-underline transition hover:border-blue-400 hover:bg-blue-100 hover:text-blue-800 hover:no-underline dark:border-blue-500/60 dark:bg-blue-500/15 dark:text-blue-200 dark:hover:border-blue-400/80 dark:hover:bg-blue-500/25 dark:hover:text-blue-100"
           >
-            Details →
+            Details
           </Link>
           <a
             href={`/api/events/${attrs.slug}/ics`}
