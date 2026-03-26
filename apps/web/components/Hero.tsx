@@ -3,7 +3,8 @@ import Link from "next/link";
 export function Hero() {
   return (
     <section className="relative min-h-[76svh] overflow-hidden">
-      <div className="absolute inset-0 bg-[url('/images/hayling-bike-night-hero.png')] bg-cover bg-center" />
+      {/* Narrow viewports: anchor right so the Hayling flag stays in frame; large screens use a centred crop */}
+      <div className="absolute inset-0 bg-[url('/images/hayling-bike-night-hero.png')] bg-cover bg-right lg:bg-center" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/65 to-black/45" />
 
       <div className="relative shell flex min-h-[76svh] flex-col justify-end pb-20 pt-24 sm:pb-24">
