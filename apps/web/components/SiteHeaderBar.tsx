@@ -91,14 +91,11 @@ export function SiteHeaderBar({ dateLine, forecast, nextMeetHref }: Props) {
           <Link href="/gallery" className={desktopLinkClass}>
             Galleries
           </Link>
-          <Link href="/events" className={desktopLinkClass}>
-            Rides and meetups
-          </Link>
           <Link href="/#find-us" className={desktopLinkClass}>
             Find us
           </Link>
-          <Link href="/events#submit-event" className={desktopLinkClass}>
-            Suggest a ride or meetup
+          <Link href="/events" className={desktopLinkClass}>
+            Rides and meetups
           </Link>
         </nav>
 
@@ -168,11 +165,14 @@ export function SiteHeaderBar({ dateLine, forecast, nextMeetHref }: Props) {
               <Link href="/gallery" className={drawerLinkClass} onClick={close}>
                 Galleries
               </Link>
+              <Link href="/#find-us" className={drawerLinkClass} onClick={close}>
+                Find us
+              </Link>
               <Link href="/events" className={drawerLinkClass} onClick={close}>
                 Rides and meetups
               </Link>
-              <Link href="/#find-us" className={drawerLinkClass} onClick={close}>
-                Find us
+              <Link href="/events#submit-event" className={drawerLinkClass} onClick={close}>
+                Suggest a ride or meetup
               </Link>
               <Link href="/upload" className={drawerLinkClass} onClick={close}>
                 Upload photos
