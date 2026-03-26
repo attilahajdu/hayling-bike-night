@@ -107,9 +107,9 @@ export function ModerationClient({
         </div>
       ) : null}
       <section>
-        <h2 className="font-display font-bold text-2xl text-zinc-200">Community event submissions</h2>
+        <h2 className="font-display font-bold text-2xl text-zinc-200">Suggested rides &amp; meets</h2>
         {events.length === 0 ? (
-          <p className="mt-2 text-sm text-zinc-500">No pending event listings.</p>
+          <p className="mt-2 text-sm text-zinc-500">No pending ride or meet suggestions.</p>
         ) : (
           <ul className="mt-4 space-y-4">
             {events.map((ev) => {

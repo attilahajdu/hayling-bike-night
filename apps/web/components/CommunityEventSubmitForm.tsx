@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 const SUCCESS_NOTE =
-  "Thanks — we received your listing. It will not appear on the calendar until an organiser approves it (usually within a day or two).";
+  "Nice one — we've got it. You're still the host; the Hayling Bike Night crew just gives it a quick once-over so the calendar stays tidy (no spam, no duplicates). It'll show for everyone once they've waved it through — usually within a day or two.";
 
 function isRedirectStatus(status: number) {
   return status === 301 || status === 302 || status === 303 || status === 307 || status === 308;
@@ -54,7 +54,8 @@ export function CommunityEventSubmitForm() {
 
       if (err) {
         setStatus("error");
-        if (err === "missing") setNote("Please fill in every field and accept the policy.");
+        if (err === "missing")
+          setNote("Fill in the fields marked * and tick the box — we need the lot before we can pass it on.");
         else if (err === "date") setNote("Check the date and time.");
         else if (err === "network") setNote("Could not reach the server. Try again shortly.");
         else if (err === "strapi") setNote("Could not save your event. Please try again or contact the team.");
@@ -119,17 +120,18 @@ export function CommunityEventSubmitForm() {
     >
       <div>
         <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-ink sm:text-3xl">
-          Submit a ride or meet
+          Got a ride or meet brewing?
         </h2>
         <p className="mt-3 text-base leading-relaxed text-zinc-600 dark:text-zinc-400">
-          Tell riders about a ride, meet-up, fundraiser, or anything bike-related on Hayling or nearby. It stays private
-          until an organiser checks it.
+          Coffee meet, loop out, fundraiser, pub stop — if it&apos;s bikes and it&apos;s on Hayling or nearby, chuck it in.
+          You&apos;re the one putting it on; we&apos;re just the website. The team here only checks new entries so the
+          calendar doesn&apos;t turn into a mess.
         </p>
 
         <details className="group mt-4 rounded-xl border border-zinc-200 bg-white/80 px-4 py-3 dark:border-zinc-600 dark:bg-zinc-950/50">
           <summary className="cursor-pointer list-none font-display text-sm font-bold uppercase tracking-wide text-accent outline-none marker:content-none [&::-webkit-details-marker]:hidden">
             <span className="inline-flex items-center gap-2">
-              Find out more
+              How does this work?
               <span className="text-zinc-400 transition group-open:rotate-180" aria-hidden>
                 ▼
               </span>
@@ -137,12 +139,14 @@ export function CommunityEventSubmitForm() {
           </summary>
           <div className="mt-3 space-y-2 border-t border-zinc-200 pt-3 text-sm leading-relaxed text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
             <p>
-              Your listing is sent to the moderation queue — it does <strong className="text-ink dark:text-zinc-200">not</strong>{" "}
-              show on the public calendar straight away. After approval, it appears with the other local events.
+              Your ride or meet <strong className="text-ink dark:text-zinc-200">won&apos;t</strong> appear on the public
+              calendar the second you hit send. Someone from the <strong className="text-ink dark:text-zinc-200">Hayling Bike Night</strong>{" "}
+              side gives it a quick look (spam filter, sensible dates, that sort of thing). Then it goes live next to the
+              official Thursday meets.
             </p>
             <p>
-              You&apos;ll need a title, date and time, location, and a short description. We only use your email if we
-              need to clarify something about your listing.
+              We need a title, when and where, plus a bit of detail so riders know what they&apos;re joining. Your email
+              is only for a rare &quot;can you clarify…?&quot; — not marketing nonsense.
             </p>
           </div>
         </details>
@@ -216,12 +220,15 @@ export function CommunityEventSubmitForm() {
 
       <label className="flex items-start gap-2 text-sm text-zinc-700 dark:text-zinc-300">
         <input type="checkbox" name="consent" required className="mt-1" />
-        <span>I confirm this is accurate and I&apos;m happy for organisers to contact me about this listing.</span>
+        <span>
+          I&apos;ve been straight with the details, and I&apos;m fine with the Hayling Bike Night lot emailing me if they
+          need to double-check something before it goes on the site.
+        </span>
       </label>
       <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" />
 
       <button type="submit" disabled={status === "submitting"} className="btn-primary w-full sm:w-auto disabled:opacity-60">
-        {status === "submitting" ? "Sending…" : "Submit for review"}
+        {status === "submitting" ? "Sending…" : "Send it in"}
       </button>
 
       {status === "ok" ? (

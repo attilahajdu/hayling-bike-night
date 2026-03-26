@@ -100,7 +100,7 @@ export type EventAttrs = {
   location: string;
   /** Strapi richtext may be string or block JSON */
   note?: unknown;
-  /** Official weekly meet vs rider-submitted listing */
+  /** Official weekly meet vs community-suggested ride/meet */
   eventKind?: "bike_night" | "community" | null;
   submitterName?: string | null;
   submitterEmail?: string | null;

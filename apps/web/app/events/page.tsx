@@ -27,23 +27,23 @@ export default async function EventsPage() {
               Local events
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-zinc-400">
-              Official Bike Night dates plus community rides and meets. Listings you add stay hidden until an organiser
-              approves them — then they show up here with everything else.
+              Official Thursday Bike Nights plus whatever riders are cooking up nearby. If you suggest a ride or meet, it
+              stays off this page until the Hayling Bike Night crew have given it a quick look — then it sits here with
+              the rest.
             </p>
           </div>
           <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-zinc-900/60 p-5 backdrop-blur-sm lg:items-stretch">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">Got a ride or meet?</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">Fancy putting something on?</p>
               <p className="mt-2 text-sm leading-relaxed text-zinc-400">
-                Add it below — same form on mobile and desktop. You&apos;ll get a clear confirmation when it&apos;s sent
-                for review.
+                Same form below on phone or desktop. You&apos;ll see a proper thumbs-up when it&apos;s landed with us.
               </p>
             </div>
             <a
               href="#submit-event"
               className="inline-flex w-full items-center justify-center rounded-xl bg-accent px-5 py-4 text-center font-display text-sm font-bold uppercase tracking-wide text-[rgb(var(--color-on-accent))] no-underline shadow-lg shadow-accent/25 transition hover:brightness-110 sm:py-3.5"
             >
-              Submit a ride or meet →
+              Suggest a ride or meet →
             </a>
           </div>
         </div>
@@ -53,12 +53,14 @@ export default async function EventsPage() {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-ink sm:text-3xl">Upcoming</h2>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Official meets and approved community listings.</p>
+            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+              Thursday nights plus rider-suggested rides and meets that are live on the calendar.
+            </p>
           </div>
         </div>
         {list.length === 0 ? (
           <p className="mt-8 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-12 text-center text-zinc-600 dark:border-zinc-600 dark:bg-zinc-900/40 dark:text-zinc-400">
-            No upcoming events in the calendar yet. Check back soon — or submit a community event below.
+            Nothing in the diary yet — check back soon, or suggest a ride or meet down below.
           </p>
         ) : (
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -78,9 +80,9 @@ export default async function EventsPage() {
 
       <section id="submit-event" className="scroll-mt-28 mt-16 border-t border-zinc-200 pt-16 dark:border-zinc-800">
         <p className="mb-8 max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-          Use this form for anything riders should know about — not for Bike Night schedule changes (those come from the
-          organisers). Unsure? Open <span className="font-medium text-ink dark:text-zinc-200">Find out more</span> on the
-          form for how moderation works.
+          This is for <span className="font-medium text-ink dark:text-zinc-200">your</span> ride, meet, fundraiser, or
+          whatever you want fellow riders to know about — not for changing the official Thursday Bike Night schedule
+          (that&apos;s handled by the regular crew). Tap <span className="font-medium text-ink dark:text-zinc-200">How does this work?</span> on the form if you want the full story.
         </p>
         <CommunityEventSubmitForm />
       </section>

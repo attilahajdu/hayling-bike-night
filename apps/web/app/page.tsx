@@ -260,8 +260,8 @@ export default async function HomePage() {
                 <p className="text-xs font-semibold uppercase tracking-[0.25em] text-accent">Plan your week</p>
                 <h2 className="mt-2 section-title">Local events</h2>
                 <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                  Bike Night meets and community rides. Running something yourself? Add it on the events page — it stays
-                  off the calendar until an organiser approves it.
+                  Thursday Bike Nights and whatever else riders are planning. Got your own spin? Suggest it on the events
+                  page — the site team gives it a quick check, then it shows here with everything else.
                 </p>
               </div>
               <div className="flex w-full flex-col gap-3 lg:w-auto lg:max-w-sm lg:items-stretch">
@@ -269,7 +269,7 @@ export default async function HomePage() {
                   href="/events#submit-event"
                   className="inline-flex w-full items-center justify-center rounded-xl border-2 border-accent/40 bg-accent px-5 py-4 text-center font-display text-sm font-bold uppercase tracking-wide text-[rgb(var(--color-on-accent))] no-underline shadow-lg shadow-accent/30 transition hover:brightness-110 lg:py-3.5"
                 >
-                  List a ride, meet, or fundraiser →
+                  Suggest a ride or meet →
                 </Link>
                 <Link
                   href="/events"
@@ -300,7 +300,7 @@ export default async function HomePage() {
                     </Link>{" "}
                     or{" "}
                     <Link href="/events#submit-event" className="font-medium text-accent no-underline hover:underline">
-                      submit a listing
+                      suggest a ride or meet
                     </Link>
                     .
                   </p>
