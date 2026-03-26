@@ -3,7 +3,7 @@ import { EventCard } from "@/components/EventCard";
 import { getDemoUpcomingEvents } from "@/lib/demo-events";
 import { getEvents } from "@/lib/strapi";
 
-export const revalidate = 120;
+export const dynamic = "force-dynamic";
 
 export default async function EventsPage() {
   const res = await getEvents({ upcoming: true });

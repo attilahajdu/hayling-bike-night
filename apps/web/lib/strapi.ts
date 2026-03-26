@@ -279,7 +279,7 @@ export async function getEvents(params?: { upcoming?: boolean }) {
   const filters = params?.upcoming ? `&filters[dateStart][$gte]=${encodeURIComponent(now)}` : "";
   return strapiFetch<ListResponse<EventAttrs>>(
     `/events?sort=${sort}&pagination[pageSize]=100${filters}&publicationState=live`,
-    { next: { revalidate: 60 } },
+    params?.upcoming ? { cache: "no-store" } : { next: { revalidate: 60 } },
   );
 }
 
