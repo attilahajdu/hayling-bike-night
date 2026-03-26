@@ -22,7 +22,13 @@ export default ({ env }: { env: any }) => {
           ? { rejectUnauthorized: env.bool("DATABASE_SSL_REJECT_UNAUTHORIZED", true) }
           : false,
       },
-      pool: { min: env.int("DATABASE_POOL_MIN", 2), max: env.int("DATABASE_POOL_MAX", 10) },
+      // Keep small: Supabase free/small tiers hit "Max client connections reached" quickly
+      // (Strapi default 10 + deploy retries + other apps sharing the same DB).
+      pool: {
+        min: env.int("DATABASE_POOL_MIN", 0),
+        max: env.int("DATABASE_POOL_MAX", 3),
+        acquireTimeoutMillis: env.int("DATABASE_POOL_ACQUIRE_TIMEOUT_MS", 60000),
+      },
     },
   };
 };
