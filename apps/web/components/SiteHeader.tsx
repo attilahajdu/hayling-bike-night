@@ -4,14 +4,16 @@ import { getMeetForecast } from "@/lib/weather";
 import { SiteHeaderBar } from "@/components/SiteHeaderBar";
 
 export async function SiteHeader() {
-  let dateLine = "This Thursday";
+  /** Header strip is only for the official Thursday Bike Night, not community-submitted rides. */
+  let dateLine = "See rides & meetups";
   let forecast: { condition: string; highC: number; lowC: number } | null = null;
   let nextMeetHref = "/events";
   try {
     const events = await getEvents({ upcoming: true });
-    const next = events?.data?.[0];
+    const bikeNights = events?.data?.filter((row) => row.attributes.eventKind !== "community") ?? [];
+    const next = bikeNights[0];
     if (next) {
-      dateLine = formatMeetLongUK(next.attributes.dateStart) ?? "This Thursday";
+      dateLine = formatMeetLongUK(next.attributes.dateStart) ?? "See rides & meetups";
       forecast = await getMeetForecast(next.attributes.dateStart);
       nextMeetHref = `/events/${next.attributes.slug}`;
     }

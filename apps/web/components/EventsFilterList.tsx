@@ -28,7 +28,14 @@ function monthLabelFromKey(key: string): string {
   return d.toLocaleDateString("en-GB", { month: "short", year: "numeric" });
 }
 
-export function EventsFilterList({ items }: { items: EventItem[] }) {
+export function EventsFilterList({
+  items,
+  defaultMonthKey,
+}: {
+  items: EventItem[];
+  /** YYYY-MM in Europe/London — pre-select this month so visitors land on “this month” unless they choose All. */
+  defaultMonthKey: string;
+}) {
   const monthOptions = useMemo(() => {
     const seen = new Set<string>();
     const opts: Array<{ key: string; label: string }> = [];
@@ -38,11 +45,14 @@ export function EventsFilterList({ items }: { items: EventItem[] }) {
       seen.add(key);
       opts.push({ key, label: monthLabelFromKey(key) });
     }
+    if (!seen.has(defaultMonthKey)) {
+      opts.push({ key: defaultMonthKey, label: monthLabelFromKey(defaultMonthKey) });
+    }
     opts.sort((a, b) => a.key.localeCompare(b.key));
     return opts;
-  }, [items]);
+  }, [items, defaultMonthKey]);
 
-  const [selectedMonth, setSelectedMonth] = useState<string>("all");
+  const [selectedMonth, setSelectedMonth] = useState<string>(defaultMonthKey);
   const [kindFilter, setKindFilter] = useState<KindFilter>("all");
 
   const filtered = useMemo(

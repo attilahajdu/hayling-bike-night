@@ -1,5 +1,6 @@
 import { CommunityEventSubmitForm } from "@/components/CommunityEventSubmitForm";
 import { EventsFilterList } from "@/components/EventsFilterList";
+import { currentMonthKeyLondon } from "@/lib/meetDateFormat";
 import { getEvents } from "@/lib/strapi";
 
 export const dynamic = "force-dynamic";
@@ -7,6 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function EventsPage() {
   const res = await getEvents({ upcoming: true });
   const displayList = res?.data ?? [];
+  const defaultMonthKey = currentMonthKeyLondon();
 
   return (
     <div className="shell py-10 sm:py-14">
@@ -62,6 +64,7 @@ export default async function EventsPage() {
           </p>
         ) : (
           <EventsFilterList
+            defaultMonthKey={defaultMonthKey}
             items={displayList.map((e) => ({
               id: e.id,
               attrs: e.attributes,

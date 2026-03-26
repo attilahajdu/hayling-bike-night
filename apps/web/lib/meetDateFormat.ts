@@ -22,3 +22,19 @@ export function formatMeetLongUK(iso: string): string | null {
   const day = d.getDate();
   return `${weekday} ${day}${ordinalSuffix(day)} ${month}`;
 }
+
+/** YYYY-MM for "now" in Europe/London (filters, defaults). */
+export function currentMonthKeyLondon(): string {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/London",
+    year: "numeric",
+    month: "numeric",
+  }).formatToParts(new Date());
+  const y = parts.find((p) => p.type === "year")?.value;
+  const m = parts.find((p) => p.type === "month")?.value;
+  if (!y || !m) {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  }
+  return `${y}-${String(Number(m)).padStart(2, "0")}`;
+}

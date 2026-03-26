@@ -23,10 +23,10 @@ export function SiteHeaderNextMeet({
         <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(78,152,255,0.35),transparent_62%)]" />
         <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-950/55 via-zinc-900/45 to-zinc-950/90" />
         <div className="relative">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-300">Next meet</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-300">Next bike night</p>
           <p className="mt-0.5 text-sm font-semibold leading-snug text-blue-300 sm:text-[0.95rem]">{dateLine}</p>
           {forecast ? (
-            <p className="mt-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-xs text-zinc-300">
+            <p className="mt-2 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-xs text-zinc-300">
               <span className="font-medium text-blue-200">{forecast.condition}</span>
               <span className="text-zinc-500" aria-hidden>
                 ·
@@ -40,10 +40,10 @@ export function SiteHeaderNextMeet({
       </>
     ) : (
       <>
-        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">Next meet</p>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">Next bike night</p>
         <p className="mt-0.5 text-sm font-semibold leading-snug text-accent sm:text-[0.95rem]">{dateLine}</p>
         {forecast ? (
-          <p className="mt-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-xs text-zinc-600 dark:text-zinc-300">
+          <p className="mt-2 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-xs text-zinc-600 dark:text-zinc-300">
             <span className="font-medium text-warm">{forecast.condition}</span>
             <span className="text-zinc-300 dark:text-zinc-600" aria-hidden>
               ·

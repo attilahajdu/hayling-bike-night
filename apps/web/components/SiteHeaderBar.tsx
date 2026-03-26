@@ -186,7 +186,7 @@ export function SiteHeaderBar({ dateLine, forecast, nextMeetHref }: Props) {
 
             <div className="mt-5 border-t border-white/12 pt-4">
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
-                Next meet
+                Next bike night
               </p>
               <SiteHeaderNextMeet dateLine={dateLine} forecast={forecast} href={nextMeetHref} />
             </div>
