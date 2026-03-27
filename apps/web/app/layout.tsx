@@ -14,6 +14,12 @@ const display = Barlow_Condensed({
 const body = Inter({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-body" });
 
 const themeInitScript = `(()=>{try{var t=localStorage.getItem('hbn-theme');if(t==='light'){document.documentElement.classList.remove('dark');}else{document.documentElement.classList.add('dark');}}catch(e){document.documentElement.classList.add('dark');}})();`;
+const GTM_ID = "GTM-TGBTQMGB";
+const gtmInitScript = `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','${GTM_ID}');`;
 
 export const metadata: Metadata = {
   title: {
@@ -38,6 +44,16 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       >
         {/* Inline script in body: runs before paint; avoids next/script + App Router edge cases and manual <head>. */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        {/* Google Tag Manager */}
+        <script dangerouslySetInnerHTML={{ __html: gtmInitScript }} />
+        <noscript>
+          <iframe
+            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
         <a className="skip-link" href="#main">
           Skip to content
         </a>
