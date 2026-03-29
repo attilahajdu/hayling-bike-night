@@ -100,16 +100,41 @@ See `apps/web/.env.example` and `apps/cms/.env.example`.
 - **iCal**: `GET /api/calendar.ics`
 - **JSON events**: `GET /api/events?upcoming=1`
 
-## Deployment sketch
+## Deployment (Netlify, staging vs production)
 
-1. Create **Supabase** project → copy **Postgres** connection string → `DATABASE_URL` on Strapi host (use **pooler** if you see connection limit errors).
-2. Run **Strapi** on Render, Fly.io, Railway, or a small VPS (`npm run build && npm run start` in `apps/cms`).
-3. Deploy **Next.js** to **Vercel**; set env vars; point `STRAPI_URL` at the public Strapi URL.
-4. Use **Byet / cPanel** only for **DNS**, **email**, or **redirects** — not for running Node.
+The **Next.js** app (`apps/web`) is deployed to **Netlify**. **Strapi** (`apps/cms`) runs on a long-lived host (e.g. Render) with **Supabase** Postgres. Staging and production use **separate** Netlify sites, Strapi instances, databases, and env vars so tests on staging never write to live data.
+
+### Branch workflow (single repo)
+
+This repo’s default branch is **`master`**. Some teams use **`main`** instead — your **Netlify production branch** must match whatever branch is production on GitHub.
+
+| Branch | Purpose | Typical Netlify site |
+|--------|---------|----------------------|
+| `master` (here) or `main` | Production only — merges here deploy the **live** custom domain | Production site |
+| `develop` | Day-to-day work and QA | Staging site (e.g. `*.netlify.app` subdomain) |
+
+1. Create **`develop`** from your production branch once (e.g. `git checkout master && git pull && git checkout -b develop && git push -u origin develop`), then use PRs/feature branches against `develop`.
+2. **Production Netlify site** (custom domain): set **Production branch** to **`master`** (or `main`). Only that branch should deploy the live site.
+3. **Staging Netlify site**: connect the **same** repository; set the branch that triggers deploys to **`develop`** (not production’s branch).
+4. **Environment variables** are **per site** — never point staging at production `STRAPI_URL`, `STRAPI_API_TOKEN`, or Supabase credentials (and vice versa). Staging needs `AUTH_URL` / `NEXT_PUBLIC_SITE_URL` matching the staging hostname; production needs the production domain. See `apps/web/.env.example`.
+
+**Promoting to production:** merge `develop` → `master` (or `main`) when staging looks good. That triggers a production deploy only then.
+
+**What you configure outside Git:** Netlify branch ↔ site mapping (and, if Strapi on Render uses Git auto-deploy, align staging Strapi with `develop` and production Strapi with `master` / `main`). Strapi admin URLs and OAuth client redirect URIs stay environment-specific; no “branch” setting inside Strapi.
+
+### Backend setup (both environments)
+
+1. **Supabase** — Postgres connection string → `DATABASE_URL` on each Strapi host (use the **pooler** host if the host only supports IPv4, e.g. some PaaS).
+2. **Strapi** — `npm run build && npm run start` in `apps/cms` on Render, Fly.io, Railway, or a small VPS; separate service per environment.
+3. **Netlify** — build the monorepo web app (however you already configure install/build in the Netlify UI, e.g. root install + `npm run build:web`). Do not commit secrets; set vars in the Netlify UI.
+
+### DNS / shared hosting
+
+Use **Byet / cPanel** (or your registrar) only for **DNS**, **email**, or **redirects** — not for running Node or Strapi.
 
 ## cPanel / Byet hosting
 
-Shared **cPanel** hosting is **not** suitable for Strapi or this Next.js app. Keep cheap hosting for the domain; run the app on Vercel + a Node host + Supabase.
+Shared **cPanel** hosting is **not** suitable for Strapi or this Next.js app. Keep cheap hosting for the domain; run the app on **Netlify** (Next.js) + a Node host for Strapi + Supabase.
 
 ## Scripts (root)
 
