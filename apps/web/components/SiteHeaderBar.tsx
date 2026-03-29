@@ -12,6 +12,18 @@ const desktopLinkClass =
 const drawerLinkClass =
   "flex min-h-[52px] items-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 font-display text-base font-bold uppercase tracking-wide text-zinc-100 no-underline transition hover:border-blue-300/45 hover:bg-blue-500/15";
 
+/** Staging Netlify only — production sets NEXT_PUBLIC_SITE_URL to the live domain. */
+function isStagingSite(): boolean {
+  const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (!raw) return false;
+  try {
+    const host = new URL(raw).hostname;
+    return host.includes("hayling-bike-night-staging") || host.includes("-staging.");
+  } catch {
+    return raw.includes("staging");
+  }
+}
+
 type Props = {
   dateLine: string;
   forecast: { condition: string; highC: number; lowC: number } | null;
@@ -73,13 +85,23 @@ export function SiteHeaderBar({ dateLine, forecast, nextMeetHref }: Props) {
   return (
     <>
       <div className="flex items-center justify-between gap-2 py-3 sm:gap-3 md:gap-6">
-        <Link href="/" className="group min-w-0 shrink-0 no-underline">
-          <img
-            src="/images/hayling-bike-night-logo.png"
-            alt="Hayling Bike Night"
-            className="h-11 w-auto rounded-md border border-zinc-300/90 bg-white object-contain sm:h-14 dark:border-zinc-600 dark:bg-zinc-900"
-          />
-        </Link>
+        <div className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
+          <Link href="/" className="group no-underline">
+            <img
+              src="/images/hayling-bike-night-logo.png"
+              alt="Hayling Bike Night"
+              className="h-11 w-auto rounded-md border border-zinc-300/90 bg-white object-contain sm:h-14 dark:border-zinc-600 dark:bg-zinc-900"
+            />
+          </Link>
+          {isStagingSite() ? (
+            <span
+              className="font-display shrink-0 text-sm font-bold uppercase tracking-wide text-orange-500 dark:text-orange-400 sm:text-base"
+              aria-label="Staging environment"
+            >
+              staging
+            </span>
+          ) : null}
+        </div>
 
         <nav
           aria-label="Main"
