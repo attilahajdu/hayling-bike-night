@@ -4,7 +4,7 @@ import {
   COMMUNITY_UPLOAD_MAX_FILES,
   COMMUNITY_UPLOAD_MAX_TOTAL_BYTES,
 } from "@/lib/community-upload-config";
-import { isSupabaseStorageConfigured } from "@/lib/supabase-storage";
+import { getSupabaseStorageBucketName, isSupabaseStorageConfigured } from "@/lib/supabase-storage";
 
 function directUploadAvailable(): boolean {
   if (!isSupabaseStorageConfigured()) return false;
@@ -14,7 +14,8 @@ function directUploadAvailable(): boolean {
 }
 
 export async function GET() {
-  const bucket = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET?.trim() || process.env.SUPABASE_STORAGE_BUCKET?.trim() || "uploads";
+  /** Must match presign + server-side getPublicUrl (SUPABASE_STORAGE_BUCKET). */
+  const bucket = getSupabaseStorageBucketName();
   return NextResponse.json({
     directUpload: directUploadAvailable(),
     bucket,

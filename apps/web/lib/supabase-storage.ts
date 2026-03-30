@@ -3,7 +3,13 @@ import { randomUUID } from "node:crypto";
 
 const SUPABASE_URL = process.env.SUPABASE_URL?.trim();
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
-const BUCKET = process.env.SUPABASE_STORAGE_BUCKET?.trim() || "uploads";
+
+/** Single source of truth — presign, getPublicUrl, and verification must use the same bucket. */
+export function getSupabaseStorageBucketName(): string {
+  return process.env.SUPABASE_STORAGE_BUCKET?.trim() || "uploads";
+}
+
+const BUCKET = getSupabaseStorageBucketName();
 
 function getClient() {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {

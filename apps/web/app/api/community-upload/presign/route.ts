@@ -7,8 +7,7 @@ import {
   COMMUNITY_UPLOAD_MAX_FILES,
   COMMUNITY_UPLOAD_MAX_TOTAL_BYTES,
 } from "@/lib/community-upload-config";
-
-const BUCKET = process.env.SUPABASE_STORAGE_BUCKET?.trim() || "uploads";
+import { getSupabaseStorageBucketName } from "@/lib/supabase-storage";
 
 function extFromMime(mime: string): string {
   if (mime === "image/png") return "png";
@@ -65,6 +64,7 @@ export async function POST(req: Request) {
   }
 
   const supabase = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
+  const bucket = getSupabaseStorageBucketName();
 
   const uploads: Array<{ path: string; signedUrl: string; token: string; publicUrl: string }> = [];
 
@@ -73,13 +73,13 @@ export async function POST(req: Request) {
     const ext = extFromMime(type);
     const path = `community/${Date.now()}-${randomUUID()}.${ext}`;
 
-    const { data, error } = await supabase.storage.from(BUCKET).createSignedUploadUrl(path);
-    if (error || !data) {
+    const { data, error } = await supabase.storage.from(bucket).createSignedUploadUrl(path);
+    if (error || !data?.signedUrl || !data.token) {
       console.error("[community-upload/presign]", error);
       return NextResponse.json({ error: "presign_failed", message: error?.message ?? "Could not create upload URL." }, { status: 500 });
     }
 
-    const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
+    const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path);
     uploads.push({
       path: data.path,
       signedUrl: data.signedUrl,
@@ -88,5 +88,5 @@ export async function POST(req: Request) {
     });
   }
 
-  return NextResponse.json({ ok: true, bucket: BUCKET, uploads });
+  return NextResponse.json({ ok: true, bucket, uploads });
 }
