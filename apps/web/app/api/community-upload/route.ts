@@ -2,10 +2,13 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
+import { createCommunityPhotoRecord, fetchGalleryContext } from "@/lib/community-upload-strapi";
+import {
+  COMMUNITY_UPLOAD_MAX_BYTES_PER_FILE,
+} from "@/lib/community-upload-config";
 import { redirectSameOrigin } from "@/lib/request-site";
 import { shouldUploadViaStrapi, saveImageViaStrapi } from "@/lib/strapi-upload";
 
-const STRAPI = process.env.STRAPI_URL?.replace(/\/$/, "") ?? "http://localhost:1337";
 const TOKEN = process.env.STRAPI_API_TOKEN?.trim();
 
 function safe(v: FormDataEntryValue | null) {
@@ -18,8 +21,7 @@ function redirectTo(req: Request, path: string) {
 
 async function saveImage(file: File, folder: "community" | "pro") {
   if (!file.type.startsWith("image/")) throw new Error("invalid-file-type");
-  const maxBytes = 10 * 1024 * 1024;
-  if (file.size > maxBytes) throw new Error("file-too-large");
+  if (file.size > COMMUNITY_UPLOAD_MAX_BYTES_PER_FILE) throw new Error("file-too-large");
 
   const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
   const fileName = `${Date.now()}-${randomUUID()}.${ext}`;
@@ -40,6 +42,7 @@ async function queueFallbackSubmission(payload: Record<string, unknown>) {
   await writeFile(filePath, JSON.stringify(payload, null, 2), "utf8");
 }
 
+/** Legacy: multipart body through this server (local dev without Supabase direct upload). */
 export async function POST(req: Request) {
   if (!TOKEN) return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
 
@@ -56,22 +59,7 @@ export async function POST(req: Request) {
     return redirectTo(req, "/upload?error=too-many");
   }
 
-  let galleryEntryId: number | null = null;
-  let eventId: number | null = null;
-  try {
-    const geRes = await fetch(`${STRAPI}/api/gallery-entries?sort=galleryLiveAt:desc&pagination[pageSize]=1&populate=event`, {
-      headers: { Authorization: `Bearer ${TOKEN}` },
-      cache: "no-store",
-    });
-    if (geRes.ok) {
-      const geJson = await geRes.json();
-      const ge = geJson?.data?.[0];
-      galleryEntryId = ge?.id ?? null;
-      eventId = ge?.attributes?.event?.data?.id ?? null;
-    }
-  } catch {
-    /* Strapi down — continue without gallery/event link */
-  }
+  const { galleryEntryId, eventId } = await fetchGalleryContext(TOKEN);
 
   const uploaderHandle = safe(form.get("uploaderHandle")) || null;
   const subjectKeywords = safe(form.get("subjectKeywords")) || null;
@@ -96,24 +84,12 @@ export async function POST(req: Request) {
 
     let createRes: Response;
     try {
-      createRes = await fetch(`${STRAPI}/api/photos`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${TOKEN}` },
-        body: JSON.stringify({
-          data: {
-            title: uploaderHandle ? `Community upload by ${uploaderHandle}` : "Community upload",
-            imageUrl,
-            thumbnailUrl: imageUrl,
-            status: "pending",
-            isExternal: false,
-            uploaderHandle,
-            submittedBy: uploaderHandle || "Community",
-            subjectKeywords,
-            consentConfirmed: true,
-            galleryEntry: galleryEntryId,
-            event: eventId,
-          },
-        }),
+      createRes = await createCommunityPhotoRecord(TOKEN, {
+        imageUrl,
+        uploaderHandle,
+        subjectKeywords,
+        galleryEntryId,
+        eventId,
       });
     } catch {
       await queueFallbackSubmission({

@@ -56,3 +56,21 @@ export async function uploadToSupabaseStorage(
 export function isSupabaseStorageConfigured(): boolean {
   return Boolean(SUPABASE_URL && SUPABASE_SERVICE_KEY);
 }
+
+/**
+ * Ensures the browser-reported public URL matches what Supabase would serve for `path`
+ * (prevents forging Strapi records pointing at someone else's storage).
+ */
+export function assertPublicUrlMatchesStoragePath(path: string, claimedPublicUrl: string): boolean {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return false;
+  if (!path.startsWith("community/")) return false;
+  try {
+    const supabase = getClient();
+    const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+    const a = new URL(claimedPublicUrl);
+    const b = new URL(data.publicUrl);
+    return a.origin === b.origin && a.pathname === b.pathname;
+  } catch {
+    return false;
+  }
+}

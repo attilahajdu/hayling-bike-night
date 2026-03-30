@@ -54,7 +54,7 @@ module.exports = createCoreController("api::photo.photo", ({ strapi }) => ({
     if (!mime.startsWith("image/")) {
       return ctx.badRequest("Invalid file type");
     }
-    const maxBytes = 10 * 1024 * 1024;
+    const maxBytes = 15 * 1024 * 1024;
     if (file.size > maxBytes) {
       return ctx.throw(413, "File too large");
     }

@@ -27,7 +27,7 @@ function redirectTo(req: Request, path: string) {
 
 async function saveImage(file: File) {
   if (!file.type.startsWith("image/")) throw new Error("invalid-file-type");
-  const maxBytes = 10 * 1024 * 1024;
+  const maxBytes = 15 * 1024 * 1024;
   if (file.size > maxBytes) throw new Error("file-too-large");
 
   const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
