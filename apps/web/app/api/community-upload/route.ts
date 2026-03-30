@@ -6,6 +6,7 @@ import { createCommunityPhotoRecord, fetchGalleryContext } from "@/lib/community
 import {
   COMMUNITY_UPLOAD_MAX_BYTES_PER_FILE,
 } from "@/lib/community-upload-config";
+import { queueFallbackSubmission } from "@/lib/queue-fallback-local";
 import { redirectSameOrigin } from "@/lib/request-site";
 import { shouldUploadViaStrapi, saveImageViaStrapi } from "@/lib/strapi-upload";
 
@@ -35,18 +36,25 @@ async function saveImage(file: File, folder: "community" | "pro") {
   return relativePath;
 }
 
-async function queueFallbackSubmission(payload: Record<string, unknown>) {
-  const dir = path.join(process.cwd(), ".local-run", "submission-queue");
-  await mkdir(dir, { recursive: true });
-  const filePath = path.join(dir, `community-${Date.now()}-${randomUUID()}.json`);
-  await writeFile(filePath, JSON.stringify(payload, null, 2), "utf8");
-}
-
 /** Legacy: multipart body through this server (local dev without Supabase direct upload). */
-export async function POST(req: Request) {
-  if (!TOKEN) return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
+async function handleCommunityUploadPost(req: Request) {
+  if (!TOKEN) {
+    return NextResponse.json(
+      { error: "misconfigured", message: "Missing STRAPI_API_TOKEN on the server." },
+      { status: 500 },
+    );
+  }
 
-  const form = await req.formData();
+  let form: FormData;
+  try {
+    form = await req.formData();
+  } catch (e) {
+    console.error("[community-upload] formData failed", e);
+    return NextResponse.json(
+      { error: "bad_request", message: "Could not read upload. Try fewer or smaller images, or use direct-to-storage upload (configure NEXT_PUBLIC_SUPABASE_* on Netlify)." },
+      { status: 400 },
+    );
+  }
   if (safe(form.get("website"))) return redirectTo(req, "/upload?ok=1");
 
   const consent = safe(form.get("consent"));
@@ -129,4 +137,19 @@ export async function POST(req: Request) {
     return redirectTo(req, `/upload${q}`);
   }
   return redirectTo(req, `/upload?ok=1&count=${savedCount}&queued=${queuedCount}`);
+}
+
+export async function POST(req: Request) {
+  try {
+    return await handleCommunityUploadPost(req);
+  } catch (e) {
+    console.error("[community-upload] unhandled", e);
+    return NextResponse.json(
+      {
+        error: "server_error",
+        message: "Upload failed unexpectedly. If this persists, configure direct Supabase uploads (NEXT_PUBLIC_SUPABASE_URL + NEXT_PUBLIC_SUPABASE_ANON_KEY) on Netlify.",
+      },
+      { status: 500 },
+    );
+  }
 }

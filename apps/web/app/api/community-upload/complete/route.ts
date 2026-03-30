@@ -1,18 +1,9 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
-import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createCommunityPhotoRecord, fetchGalleryContext } from "@/lib/community-upload-strapi";
+import { queueFallbackSubmission } from "@/lib/queue-fallback-local";
 import { assertPublicUrlMatchesStoragePath } from "@/lib/supabase-storage";
 
 const TOKEN = process.env.STRAPI_API_TOKEN?.trim();
-
-async function queueFallbackSubmission(payload: Record<string, unknown>) {
-  const dir = path.join(process.cwd(), ".local-run", "submission-queue");
-  await mkdir(dir, { recursive: true });
-  const filePath = path.join(dir, `community-${Date.now()}-${randomUUID()}.json`);
-  await writeFile(filePath, JSON.stringify(payload, null, 2), "utf8");
-}
 
 type Body = {
   consent?: boolean;
@@ -22,6 +13,18 @@ type Body = {
 };
 
 export async function POST(req: Request) {
+  try {
+    return await handleCompletePost(req);
+  } catch (e) {
+    console.error("[community-upload/complete] unhandled", e);
+    return NextResponse.json(
+      { ok: false, error: "server_error", message: "Could not complete upload. Please try again." },
+      { status: 500 },
+    );
+  }
+}
+
+async function handleCompletePost(req: Request) {
   if (!TOKEN) {
     return NextResponse.json({ error: "misconfigured", message: "Server misconfigured (missing STRAPI_API_TOKEN)." }, { status: 500 });
   }

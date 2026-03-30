@@ -39,8 +39,13 @@ export function CommunityUploadForm() {
 
     try {
       const cfgRes = await fetch("/api/community-upload/config");
-      if (!cfgRes.ok) throw new Error("config");
-      const cfg = (await cfgRes.json()) as Config;
+      const cfgRaw = (await cfgRes.json().catch(() => ({}))) as Config & { message?: string };
+      if (!cfgRes.ok) {
+        setStatus("error");
+        setNote(cfgRaw.message ?? "Could not load upload settings. Please refresh and try again.");
+        return;
+      }
+      const cfg = cfgRaw as Config;
 
       if (!cfg.directUpload) {
         await submitLegacyMultipart(form);
@@ -181,12 +186,18 @@ export function CommunityUploadForm() {
     const res = await fetch("/api/community-upload", { method: "POST", body: data });
 
     if (!res.ok) {
+      const errJson = (await res.json().catch(() => ({}))) as { message?: string };
+      setStatus("error");
       if (res.status === 413) {
-        setStatus("error");
         setNote("That upload is too large for this server’s single-request limit. Configure Supabase direct uploads, or upload fewer/smaller images.");
         return;
       }
-      throw new Error("Upload failed");
+      if (typeof errJson.message === "string") {
+        setNote(errJson.message);
+        return;
+      }
+      setNote("Upload failed. Please try again.");
+      return;
     }
     const url = new URL(res.url);
     const ok = url.searchParams.get("ok");
@@ -217,7 +228,7 @@ export function CommunityUploadForm() {
         setNote(
           "Upload failed: the photo server is missing the upload route. Deploy the latest Strapi (CMS) from GitHub, then try again.",
         );
-      else if (detail === "413") setNote("That file is too large (max 10 MB per image in legacy mode).");
+      else if (detail === "413") setNote("That file is too large (max 15 MB per image in legacy mode).");
       else setNote("Upload failed. Please check file type and try again.");
     }
   }
